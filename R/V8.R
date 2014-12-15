@@ -23,7 +23,7 @@
 #' @aliases V8
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom Rcpp sourceCpp
-#' @useDynLib V8 V8_context_eval V8_make_context V8_context_validate
+#' @useDynLib V8
 #' @examples # Create a new context
 #' ct <- new_context();
 #'
@@ -40,7 +40,12 @@
 #' ct$assign("mydata", mtcars)
 #' ct$get("mydata")
 #'
-#' # Validate syntax without evaluating
+#' # Assign JavaScript
+#' ct$assign("foo", I("function(x){return x*x}"))
+#' ct$assign("bar", I("foo(9)"))
+#' ct$get("bar")
+#'
+#' # Validate script without evaluating
 #' ct$validate("function foo(x){2*x}") #TRUE
 #' ct$validate("foo = function(x){2*x}") #TRUE
 #' ct$validate("function(x){2*x}") #FALSE
@@ -66,55 +71,63 @@
 #' }
 #'
 new_context <- function() {
-  this <- environment();
+  # Internal variables
   context <- make_context();
-  created <- Sys.time()
-  eval <- function(src){
-    get_str_output(context_eval(paste(src, collapse="\n"), context));
-  }
-  validate <- function(src){
-    context_validate(paste(src, collapse="\n"), context)
-  }
-  call <- function(fun, ...){
-    stopifnot(is.character(fun))
-    stopifnot(this$validate(paste0("fun=", fun)));
-    jsargs <- list(...);
-    if(!is.null(names(jsargs))){
-      stop("Named arguments are not supported in JavaScript.")
-    }
-    jsargs <- vapply(jsargs, function(x){
-      if(is.atomic(x) && is(x, "AsIs")){
-        as.character(x)
-      } else {
-        # To box or not. I'm not sure.
-        toJSON(x, auto_unbox = TRUE)
+  created <- Sys.time();
+
+  # Exported variables
+  this <- local({
+    eval <- function(src){
+      if(length(src) > 1){
+        src <- join(src)
       }
-    }, character(1));
-    jsargs <- paste(jsargs, collapse=",")
-    src <- paste0("JSON.stringify((", fun ,")(", jsargs, "));");
-    out <- this$eval(src)
-    get_json_output(out)
-  }
-  source <- function(file){
-    this$eval(readLines(file, warn = FALSE))
-  }
-  get <- function(name){
-    stopifnot(is.character(name))
-    get_json_output(this$eval(c("JSON.stringify(", name, ")")))
-  }
-  assign <- function(name, value){
-    stopifnot(is.character(name))
-    invisible(this$eval(c(name, "=", toJSON(value))))
-  }
-  lockEnvironment(this, TRUE)
-  #reg.finalizer(this, function(e){}, TRUE)
-
-  # Need to add 'environment' class to make autocomplete work
-  structure(this, class=c("V8", "environment"))
-}
-
-make_closure <- function(src){
-  paste("(function() {", src, "}).call(this)", sep = "\n")
+      get_str_output(context_eval_safe(src, context));
+    }
+    validate <- function(src){
+      context_validate_safe(join(src), context)
+    }
+    call <- function(fun, ...){
+      stopifnot(is.character(fun))
+      stopifnot(this$validate(c("fun=", fun)));
+      jsargs <- list(...);
+      if(!is.null(names(jsargs))){
+        stop("Named arguments are not supported in JavaScript.")
+      }
+      jsargs <- vapply(jsargs, function(x){
+        if(is.atomic(x) && is(x, "AsIs")){
+          as.character(x)
+        } else {
+          # To box or not. I'm not sure.
+          toJSON(x, auto_unbox = TRUE)
+        }
+      }, character(1));
+      jsargs <- paste(jsargs, collapse=",")
+      src <- paste0("JSON.stringify((", fun ,")(", jsargs, "));");
+      out <- this$eval(src)
+      get_json_output(out)
+    }
+    source <- function(file){
+      this$eval(readLines(file, warn = FALSE))
+    }
+    get <- function(name){
+      stopifnot(is.character(name))
+      get_json_output(this$eval(c("JSON.stringify(", name, ")")))
+    }
+    assign <- function(name, value){
+      stopifnot(is.character(name))
+      obj <- if(is(value, "AsIs")){
+        invisible(this$eval(paste(name, "=", value)))
+      } else {
+        invisible(this$eval(paste(name, "=", toJSON(value))))
+      }
+    }
+    reset <- function(){
+      context <<- make_context();
+    }
+    #reg.finalizer(environment(), function(e){}, TRUE)
+    lockEnvironment(environment(), TRUE)
+    structure(environment(), class=c("V8", "environment"))
+  })
 }
 
 get_json_output <- function(json){
@@ -126,7 +139,7 @@ get_json_output <- function(json){
 }
 
 get_str_output <- function(str){
-  if(str == "undefined"){
+  if(identical(str, "undefined")){
     invisible(str)
   } else {
     return(str)
@@ -149,11 +162,15 @@ get_str_output <- function(str){
 
 #' @export
 print.V8 <- function(x, ...){
-  if(identical(x$context, new("externalptr"))){
+  if(context_null(get("context", x))){
     cat("This context has been disposed.")
   } else {
-    cat("V8 context methods:\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n")
+    cat("V8 context methods:\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n  $reset()\n")
   }
+}
+
+join <- function (str){
+  paste(str, collapse="\n")
 }
 
 # Override default call argument.

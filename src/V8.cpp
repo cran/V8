@@ -1,6 +1,8 @@
 /*
  R bindings to V8. Copyright 2014, Jeroen Ooms.
 
+ Note: Rcpp completely ignores character encodings, so need to convert manually.
+
  V8 source parsing:
  http://stackoverflow.com/questions/16613828/how-to-convert-stdstring-to-v8s-localstring
 
@@ -48,7 +50,6 @@ ctxptr make_context(){
 
 // [[Rcpp::export]]
 std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
-
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("Context has been disposed.");
@@ -79,6 +80,7 @@ std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context
   return *utf8;
 }
 
+
 // [[Rcpp::export]]
 bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
 
@@ -94,4 +96,32 @@ bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> >
   TryCatch trycatch;
   Handle<Script> script = compile_source(src);
   return !script.IsEmpty();
+}
+
+// [[Rcpp::export]]
+bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
+  // Test if context still exists
+  return(!ctx);
+}
+
+/*
+Rcpp does not deal well with UTF8 on windows.
+Workaround below (hopefully temporary)
+*/
+
+// [[Rcpp::export]]
+SEXP context_eval_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+  std::string str(Rf_translateCharUTF8(Rf_asChar(src)));
+  std::string out = context_eval(str, ctx);
+  SEXP res = PROTECT(Rf_allocVector(STRSXP, 1));
+  SET_STRING_ELT(res, 0, Rf_mkCharCE(out.c_str(), CE_UTF8));
+  UNPROTECT(1);
+  return res;
+}
+
+
+// [[Rcpp::export]]
+bool context_validate_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+  std::string str(Rf_translateCharUTF8(Rf_asChar(src)));
+  return context_validate(str, ctx);
 }
