@@ -71,11 +71,11 @@
 #' }
 #'
 new_context <- function() {
-  # Internal variables
+  # Fields
   context <- make_context();
   created <- Sys.time();
 
-  # Exported variables
+  # Public methods
   this <- local({
     eval <- function(src){
       if(length(src) > 1){
@@ -124,6 +124,44 @@ new_context <- function() {
     reset <- function(){
       context <<- make_context();
     }
+    console <- function(){
+      this$eval("")
+      message("This is V8 version ", version(), ". Press ESC or CTRL+C to exit.")
+      on.exit(message("Exiting V8 console."))
+      buffer <- character();
+
+      # OSX R.app does not support savehistory
+      has_history <- !is(try(savehistory(tempfile()), silent=T), "try-error")
+      if(has_history){
+        savehistory()
+        on.exit(loadhistory(), add = TRUE)
+        histfile <- ".V8history"
+        if(file.exists(histfile)){
+          loadhistory(histfile)
+        } else {
+          file.create(histfile)
+        }
+      }
+      repeat {
+        prompt <- ifelse(length(buffer), "  ", "~ ")
+        if(nchar(line <- readline(prompt))){
+          buffer <- c(buffer, line)
+        }
+        if(length(buffer) && (this$validate(buffer) || !nchar(line))){
+          if(has_history){
+            write(buffer, histfile, append = TRUE)
+            loadhistory(histfile)
+          }
+          tryCatch(
+            cat(this$eval(buffer), "\n"),
+            error = function(e){
+              message(e$message)
+            }
+          )
+          buffer <- character();
+        }
+      }
+    }
     #reg.finalizer(environment(), function(e){}, TRUE)
     lockEnvironment(environment(), TRUE)
     structure(environment(), class=c("V8", "environment"))
@@ -165,7 +203,7 @@ print.V8 <- function(x, ...){
   if(context_null(get("context", x))){
     cat("This context has been disposed.")
   } else {
-    cat("V8 context methods:\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n  $reset()\n")
+    cat("V8 context methods:\n  $console()\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n  $reset()\n")
   }
 }
 
