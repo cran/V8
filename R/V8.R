@@ -18,18 +18,27 @@
 #' described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
 #' by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
 #'
+#' The name of the global object (i.e. \code{global} in node and \code{window}
+#' in browsers) can be set with the global argument. A context always have a global
+#' scope, even when no name is set. When a context is initiated with \code{global = NULL},
+#' the global environment can be reached by evaluating \code{this} in the global scope,
+#' for example: \code{ct$eval("Object.keys(this)")}.
+#'
 #' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
 #' @export
+#' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
+#' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
 #' @aliases V8
 #' @importFrom jsonlite fromJSON toJSON
+#' @importFrom curl curl
 #' @importFrom Rcpp sourceCpp
 #' @useDynLib V8
 #' @examples # Create a new context
 #' ct <- new_context();
 #'
 #' # Evaluate some code
-#' ct$eval("foo=123")
-#' ct$eval("bar=456")
+#' ct$eval("var foo = 123")
+#' ct$eval("var bar = 456")
 #' ct$eval("foo+bar")
 #'
 #' # Functions and closures
@@ -62,18 +71,24 @@
 #' # Call anonymous function
 #' ct$call("function(x, y){return x * y}", 123, 3)
 #'
-#' \dontrun{fun with CoffeeScript
+#' \dontrun{CoffeeScript
 #' ct2 <- new_context()
 #' ct2$source("http://coffeescript.org/extras/coffee-script.js")
 #' jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
 #' ct2$eval(jscode)
 #' ct2$call("square", 9)
-#' }
 #'
-new_context <- function() {
-  # Fields
-  context <- make_context();
-  created <- Sys.time();
+#' # Interactive console
+#' ct3 <- new_context()
+#' ct3$console()
+#' //this is JavaScript
+#' var test = [1,2,3]
+#' JSON.stringify(test)
+#' exit}
+#'
+new_context <- function(global = "global", console = TRUE) {
+  # Private fields
+  private <- environment();
 
   # Public methods
   this <- local({
@@ -81,10 +96,10 @@ new_context <- function() {
       if(length(src) > 1){
         src <- join(src)
       }
-      get_str_output(context_eval_safe(src, context));
+      get_str_output(context_eval_safe(src, private$context));
     }
     validate <- function(src){
-      context_validate_safe(join(src), context)
+      context_validate_safe(join(src), private$context)
     }
     call <- function(fun, ...){
       stopifnot(is.character(fun))
@@ -107,6 +122,10 @@ new_context <- function() {
       get_json_output(out)
     }
     source <- function(file){
+      if(is.character(file) && length(file) == 1 && grepl("^https?://", file)){
+        file <- curl(file, open = "r")
+        on.exit(close(file))
+      }
       this$eval(readLines(file, warn = FALSE))
     }
     get <- function(name){
@@ -116,13 +135,18 @@ new_context <- function() {
     assign <- function(name, value){
       stopifnot(is.character(name))
       obj <- if(is(value, "AsIs")){
-        invisible(this$eval(paste(name, "=", value)))
+        invisible(this$eval(paste("var", name, "=", value)))
       } else {
-        invisible(this$eval(paste(name, "=", toJSON(value))))
+        invisible(this$eval(paste("var", name, "=", toJSON(value, auto_unbox = TRUE))))
       }
     }
     reset <- function(){
-      context <<- make_context();
+      private$context <- make_context(private$console);
+      private$created <- Sys.time();
+      if(length(global)){
+        context_eval_safe(paste("var", global, "= this;", collapse = "\n"), private$context)
+      }
+      invisible()
     }
     console <- function(){
       this$eval("")
@@ -147,13 +171,14 @@ new_context <- function() {
         if(nchar(line <- readline(prompt))){
           buffer <- c(buffer, line)
         }
+        if(identical(buffer, "exit")) break;
         if(length(buffer) && (this$validate(buffer) || !nchar(line))){
           if(has_history){
             write(buffer, histfile, append = TRUE)
             loadhistory(histfile)
           }
           tryCatch(
-            cat(this$eval(buffer), "\n"),
+            cat(undefined_to_null(this$eval(buffer))),
             error = function(e){
               message(e$message)
             }
@@ -163,14 +188,23 @@ new_context <- function() {
       }
     }
     #reg.finalizer(environment(), function(e){}, TRUE)
+    reset()
     lockEnvironment(environment(), TRUE)
     structure(environment(), class=c("V8", "environment"))
   })
 }
 
+undefined_to_null <- function(str){
+  if(identical(str,"undefined")){
+    invisible()
+  } else {
+    paste0(str, "\n")
+  }
+}
+
 get_json_output <- function(json){
   if(identical(json,"undefined")){
-    invisible()
+    invisible(NULL)
   } else {
     fromJSON(json)
   }
