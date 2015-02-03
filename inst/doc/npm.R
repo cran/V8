@@ -4,7 +4,7 @@ library(V8)
 
 ## ------------------------------------------------------------------------
 ct <- new_context()
-ct$source("http://underscorejs.org/underscore-min.js")
+ct$source(system.file("js/underscore.js", package="V8"))
 ct$call("_.filter", mtcars, I("function(x){return x.mpg < 15}"))
 
 ## ----eval=FALSE----------------------------------------------------------

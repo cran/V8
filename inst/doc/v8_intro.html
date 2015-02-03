@@ -10,7 +10,7 @@
 
 <meta name="author" content="Jeroen Ooms" />
 
-<meta name="date" content="2015-01-11" />
+<meta name="date" content="2015-02-02" />
 
 <title>Introduction to V8 for R</title>
 
@@ -54,7 +54,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <div id="header">
 <h1 class="title">Introduction to V8 for R</h1>
 <h4 class="author"><em>Jeroen Ooms</em></h4>
-<h4 class="date"><em>2015-01-11</em></h4>
+<h4 class="date"><em>2015-02-02</em></h4>
 </div>
 
 <div id="TOC">
@@ -84,7 +84,7 @@ ct$<span class="kw">eval</span>(<span class="st">&quot;foo + bar&quot;</span>)</
 <p>A major advantage over the other foreign language interfaces is that V8 requires no compilers, external executables or other run-time dependencies. The entire engine is contained within a 6MB package (2MB zipped) and works on all major platforms.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create some JSON</span>
 <span class="kw">cat</span>(ct$<span class="kw">eval</span>(<span class="st">&quot;JSON.stringify({x:Math.random()})&quot;</span>))</code></pre>
-<pre><code>{&quot;x&quot;:0.09533587796613574}</code></pre>
+<pre><code>{&quot;x&quot;:0.9238276486285031}</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Simple closure</span>
 ct$<span class="kw">eval</span>(<span class="st">&quot;(function(x){return x+1;})(123)&quot;</span>)</code></pre>
 <pre><code>[1] &quot;124&quot;</code></pre>
@@ -192,21 +192,31 @@ ct$<span class="kw">eval</span>(<span class="st">'var cf = crossfilter || consol
 </div>
 <div id="the-global-namespace" class="section level2">
 <h2>The Global Namespace</h2>
-<p>Unlike what you might be used to from Node or your browser, the global namespace for a new context if very minimal. By default it contains two objects: <code>global</code> (a refence to itself) and <code>console</code> (for <code>console.log</code> and friends)</p>
-<pre class="sourceCode r"><code class="sourceCode r">ct &lt;-<span class="st"> </span><span class="kw">new_context</span>();
+<p>Unlike what you might be used to from Node or your browser, the global namespace for a new context if very minimal. By default it contains only a few objects: <code>global</code> (a refence to itself), <code>console</code> (for <code>console.log</code> and friends) and <code>print</code> (an alias of console.log needed by some JavaScript libraries)</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct &lt;-<span class="st"> </span><span class="kw">new_context</span>(<span class="dt">typed_arrays =</span> <span class="ot">FALSE</span>);
 ct$<span class="kw">get</span>(<span class="kw">I</span>(<span class="st">&quot;Object.keys(global)&quot;</span>))</code></pre>
-<pre><code>[1] &quot;console&quot; &quot;global&quot; </code></pre>
+<pre><code>[1] &quot;console&quot; &quot;print&quot;   &quot;global&quot; </code></pre>
+<p>If typed arrays are enabled it contains some additional functions:</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct &lt;-<span class="st"> </span><span class="kw">new_context</span>(<span class="dt">typed_arrays =</span> <span class="ot">TRUE</span>);
+ct$<span class="kw">get</span>(<span class="kw">I</span>(<span class="st">&quot;Object.keys(global)&quot;</span>))</code></pre>
+<pre><code> [1] &quot;console&quot;      &quot;print&quot;        &quot;global&quot;       &quot;ArrayBuffer&quot; 
+ [5] &quot;Int8Array&quot;    &quot;Uint8Array&quot;   &quot;Int16Array&quot;   &quot;Uint16Array&quot; 
+ [9] &quot;Int32Array&quot;   &quot;Uint32Array&quot;  &quot;Float32Array&quot; &quot;Float64Array&quot;
+[13] &quot;DataView&quot;    </code></pre>
 <p>A context always has a global scope, even when no name is set. When a context is initiated with <code>global = NULL</code>, it can still be reached by evaluating the <code>this</code> keyword within the global scope:</p>
 <pre class="sourceCode r"><code class="sourceCode r">ct2 &lt;-<span class="st"> </span><span class="kw">new_context</span>(<span class="dt">global =</span> <span class="ot">NULL</span>, <span class="dt">console =</span> <span class="ot">FALSE</span>)
 ct2$<span class="kw">get</span>(<span class="kw">I</span>(<span class="st">&quot;Object.keys(this).length&quot;</span>))</code></pre>
-<pre><code>[1] 0</code></pre>
+<pre><code>[1] 10</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">ct2$<span class="kw">assign</span>(<span class="st">&quot;cars&quot;</span>, cars)
 ct2$<span class="kw">eval</span>(<span class="st">&quot;var foo = 123&quot;</span>)
 ct2$<span class="kw">eval</span>(<span class="st">&quot;function test(x){x+1}&quot;</span>)
 ct2$<span class="kw">get</span>(<span class="kw">I</span>(<span class="st">&quot;Object.keys(this).length&quot;</span>))</code></pre>
-<pre><code>[1] 3</code></pre>
+<pre><code>[1] 13</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">ct2$<span class="kw">get</span>(<span class="kw">I</span>(<span class="st">&quot;Object.keys(this)&quot;</span>))</code></pre>
-<pre><code>[1] &quot;cars&quot; &quot;foo&quot;  &quot;test&quot;</code></pre>
+<pre><code> [1] &quot;ArrayBuffer&quot;  &quot;Int8Array&quot;    &quot;Uint8Array&quot;   &quot;Int16Array&quot;  
+ [5] &quot;Uint16Array&quot;  &quot;Int32Array&quot;   &quot;Uint32Array&quot;  &quot;Float32Array&quot;
+ [9] &quot;Float64Array&quot; &quot;DataView&quot;     &quot;cars&quot;         &quot;foo&quot;         
+[13] &quot;test&quot;        </code></pre>
 <p>To create your own global you could use something like:</p>
 <pre class="sourceCode r"><code class="sourceCode r">ct2$<span class="kw">eval</span>(<span class="st">&quot;var __global__ = this&quot;</span>)
 ct2$<span class="kw">eval</span>(<span class="st">&quot;(function(){var bar = [1,2,3,4]; __global__.bar = bar; })()&quot;</span>)

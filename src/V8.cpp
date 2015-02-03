@@ -1,10 +1,12 @@
 /*
  R bindings to V8. Copyright 2014, Jeroen Ooms.
 
- Note: Rcpp completely ignores character encodings, so need to convert manually.
+ Notes:
+ - Rcpp completely ignores character encodings, so need to convert manually.
+ - Implementation of Typed Arrays taken from node v0.6.21
 
  V8 source parsing:
- http://stackoverflow.com/questions/16613828/how-to-convert-stdstring-to-v8s-localstring
+ - http://stackoverflow.com/questions/16613828/how-to-convert-stdstring-to-v8s-localstring
 
  Xptr examples:
  - https://github.com/RcppCore/Rcpp/blob/master/inst/unitTests/cpp/XPtr.cpp
@@ -13,6 +15,7 @@
 
 #include <v8.h>
 #include <Rcpp.h>
+#include "v8_typed_array.h"
 using namespace v8;
 
 /* a linked list keeping track of running contexts */
@@ -72,11 +75,14 @@ ctxptr make_context(bool set_console){
   HandleScope handle_scope;
   Handle<ObjectTemplate> global = ObjectTemplate::New();
   if(set_console){
-  Handle<ObjectTemplate> console = ObjectTemplate::New();
+    Handle<ObjectTemplate> console = ObjectTemplate::New();
     global->Set(String::NewSymbol("console"), console);
     console->Set(String::NewSymbol("log"), FunctionTemplate::New(ConsoleLog));
     console->Set(String::NewSymbol("warn"), FunctionTemplate::New(ConsoleWarn));
     console->Set(String::NewSymbol("error"), FunctionTemplate::New(ConsoleError));
+
+    /* emscripted assumes a print function */
+    global->Set(String::NewSymbol("print"), FunctionTemplate::New(ConsoleLog));
   }
   /* initialize the context */
   lstail->context = Context::New(NULL, global);
@@ -84,6 +90,14 @@ ctxptr make_context(bool set_console){
   lstail->next = new node;
   lstail = lstail->next;
   return(ptr);
+}
+
+// [[Rcpp::export]]
+bool context_enable_typed_arrays( Rcpp::XPtr< v8::Persistent<v8::Context> > ctx ){
+  HandleScope handle_scope;
+  Context::Scope context_scope(*ctx);
+  v8_typed_array::AttachBindings((*ctx)->Global());
+  return true;
 }
 
 // [[Rcpp::export]]
@@ -123,7 +137,6 @@ std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context
   return *utf8;
 }
 
-
 // [[Rcpp::export]]
 bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
 
@@ -162,9 +175,49 @@ SEXP context_eval_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   return res;
 }
 
-
 // [[Rcpp::export]]
 bool context_validate_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   std::string str(Rf_translateCharUTF8(Rf_asChar(src)));
   return context_validate(str, ctx);
+}
+
+/*
+Method below does not work because null bytes get lost when converting to strings.
+Should use ArrayBuffer types instead, e.g. Uint8Array.
+*/
+
+// [[Rcpp::export]]
+bool context_assign_bin(std::string name, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
+
+  // Test if context still exists
+  if(!ctx)
+    throw std::runtime_error("Context has been disposed.");
+
+  // Create scope
+  HandleScope handle_scope;
+  Context::Scope context_scope(*ctx);
+  v8::Handle<v8::Object> global = (*ctx)->Global();
+
+  // Currently converts raw vectors to strings. Better would be ArrayBuffer (Uint8Array specifically)
+  Local<v8::String> mystring = v8::String::New((const char*) RAW(data), data.length());
+  global->Set(String::NewSymbol(name.c_str()), mystring);
+  return true;
+}
+
+// [[Rcpp::export]]
+Rcpp::RawVector context_get_bin(std::string name, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
+  // Test if context still exists
+  if(!ctx)
+    throw std::runtime_error("Context has been disposed.");
+
+  // Create scope
+  HandleScope handle_scope;
+  Context::Scope context_scope(*ctx);
+  v8::Handle<v8::Object> global = (*ctx)->Global();
+
+  //find the string
+  Local<v8::String> mystring = global->Get(String::NewSymbol(name.c_str()))->ToString();
+  Rcpp::RawVector res(mystring->Length());
+  mystring->WriteAscii((char*) res.begin());
+  return res;
 }

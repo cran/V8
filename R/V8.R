@@ -28,6 +28,8 @@
 #' @export
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
+#' @param typed_arrays enable support for typed arrays (part of ECMA6). This adds a bunch of additional
+#' functions to the global namespace.
 #' @aliases V8
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom curl curl
@@ -86,7 +88,7 @@
 #' JSON.stringify(test)
 #' exit}
 #'
-new_context <- function(global = "global", console = TRUE) {
+new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   # Private fields
   private <- environment();
 
@@ -145,6 +147,9 @@ new_context <- function(global = "global", console = TRUE) {
       private$created <- Sys.time();
       if(length(global)){
         context_eval_safe(paste("var", global, "= this;", collapse = "\n"), private$context)
+      }
+      if(isTRUE(typed_arrays)){
+        context_enable_typed_arrays(private$context)
       }
       invisible()
     }

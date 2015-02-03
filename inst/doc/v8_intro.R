@@ -18,9 +18,13 @@ cat(ct$eval("JSON.stringify({x:Math.random()})"))
 # Simple closure
 ct$eval("(function(x){return x+1;})(123)")
 
-## ----, results='hide'----------------------------------------------------
+## ----, eval=FALSE--------------------------------------------------------
+#  ct$source(system.file("js/underscore.js", package="V8"))
+#  ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js")
+
+## ----echo=FALSE, results='hide'------------------------------------------
 ct$source(system.file("js/underscore.js", package="V8"))
-ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js")
+ct$source(system.file("js/crossfilter.js", package="V8"))
 
 ## ------------------------------------------------------------------------
 ct$assign("mydata", mtcars)
@@ -44,13 +48,17 @@ ct$call("_.filter", mtcars, I("function(x){return x.mpg < 15}"))
 #  output <- ct$get("output")
 #  print(output)
 
-## ----, results='hide'----------------------------------------------------
-ct <- new_context()
-ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js")
-ct$eval('var cf = crossfilter || console.error("failed to load crossfilter!")')
+## ----, eval=FALSE--------------------------------------------------------
+#  ct <- new_context()
+#  ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js")
+#  ct$eval('var cf = crossfilter || console.error("failed to load crossfilter!")')
 
 ## ------------------------------------------------------------------------
-ct <- new_context();
+ct <- new_context(typed_arrays = FALSE);
+ct$get(I("Object.keys(global)"))
+
+## ------------------------------------------------------------------------
+ct <- new_context(typed_arrays = TRUE);
 ct$get(I("Object.keys(global)"))
 
 ## ------------------------------------------------------------------------
