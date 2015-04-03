@@ -31,12 +31,12 @@ ct$assign("mydata", mtcars)
 ct$get("mydata")
 
 ## ------------------------------------------------------------------------
-ct$assign("foo", I("function(x){return x*x}"))
-ct$assign("bar", I("foo(9)"))
+ct$assign("foo", JS("function(x){return x*x}"))
+ct$assign("bar", JS("foo(9)"))
 ct$get("bar")
 
 ## ------------------------------------------------------------------------
-ct$call("_.filter", mtcars, I("function(x){return x.mpg < 15}"))
+ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 
 ## ----, eval=FALSE--------------------------------------------------------
 #  # Load some data
@@ -55,20 +55,20 @@ ct$call("_.filter", mtcars, I("function(x){return x.mpg < 15}"))
 
 ## ------------------------------------------------------------------------
 ct <- new_context(typed_arrays = FALSE);
-ct$get(I("Object.keys(global)"))
+ct$get(JS("Object.keys(global)"))
 
 ## ------------------------------------------------------------------------
 ct <- new_context(typed_arrays = TRUE);
-ct$get(I("Object.keys(global)"))
+ct$get(JS("Object.keys(global)"))
 
 ## ------------------------------------------------------------------------
 ct2 <- new_context(global = NULL, console = FALSE)
-ct2$get(I("Object.keys(this).length"))
+ct2$get(JS("Object.keys(this).length"))
 ct2$assign("cars", cars)
 ct2$eval("var foo = 123")
 ct2$eval("function test(x){x+1}")
-ct2$get(I("Object.keys(this).length"))
-ct2$get(I("Object.keys(this)"))
+ct2$get(JS("Object.keys(this).length"))
+ct2$get(JS("Object.keys(this)"))
 
 ## ------------------------------------------------------------------------
 ct2$eval("var __global__ = this")

@@ -5,7 +5,7 @@ library(V8)
 ## ------------------------------------------------------------------------
 ct <- new_context()
 ct$source(system.file("js/underscore.js", package="V8"))
-ct$call("_.filter", mtcars, I("function(x){return x.mpg < 15}"))
+ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 
 ## ----eval=FALSE----------------------------------------------------------
 #  ct <- new_context()
@@ -16,7 +16,7 @@ ct <- new_context()
 ct$source("beautify.js")
 
 ## ------------------------------------------------------------------------
-ct$get(I('Object.keys(global)'))
+ct$get(JS('Object.keys(global)'))
 
 ## ------------------------------------------------------------------------
 test <- "(function(x,y){x = x || 1; y = y || 1; return y * x;})(4, 9)"

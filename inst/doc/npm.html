@@ -10,7 +10,7 @@
 
 <meta name="author" content="Jeroen Ooms" />
 
-<meta name="date" content="2015-02-02" />
+<meta name="date" content="2015-04-02" />
 
 <title>Using NPM packages in V8</title>
 
@@ -54,7 +54,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <div id="header">
 <h1 class="title">Using NPM packages in V8</h1>
 <h4 class="author"><em>Jeroen Ooms</em></h4>
-<h4 class="date"><em>2015-02-02</em></h4>
+<h4 class="date"><em>2015-04-02</em></h4>
 </div>
 
 <div id="TOC">
@@ -116,7 +116,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <p>Some general purpose libraries like underscore or crossfilter will work natively in V8:</p>
 <pre class="sourceCode r"><code class="sourceCode r">ct &lt;-<span class="st"> </span><span class="kw">new_context</span>()
 ct$<span class="kw">source</span>(<span class="kw">system.file</span>(<span class="st">&quot;js/underscore.js&quot;</span>, <span class="dt">package=</span><span class="st">&quot;V8&quot;</span>))
-ct$<span class="kw">call</span>(<span class="st">&quot;_.filter&quot;</span>, mtcars, <span class="kw">I</span>(<span class="st">&quot;function(x){return x.mpg &lt; 15}&quot;</span>))</code></pre>
+ct$<span class="kw">call</span>(<span class="st">&quot;_.filter&quot;</span>, mtcars, <span class="kw">JS</span>(<span class="st">&quot;function(x){return x.mpg &lt; 15}&quot;</span>))</code></pre>
 <pre><code>                     mpg cyl disp  hp drat    wt  qsec vs am gear carb
 Duster 360          14.3   8  360 245 3.21 3.570 15.84  0  0    3    4
 Cadillac Fleetwood  10.4   8  472 205 2.93 5.250 17.98  0  0    3    4
@@ -144,7 +144,7 @@ Camaro Z28          13.3   8  350 245 3.73 3.840 15.41  0  0    3    4</code></p
 <pre class="sourceCode r"><code class="sourceCode r">ct &lt;-<span class="st"> </span><span class="kw">new_context</span>()
 ct$<span class="kw">source</span>(<span class="st">&quot;~/Desktop/bundle.js&quot;</span>)</code></pre>
 <p>Let’s see whats in our global environment now:</p>
-<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">get</span>(<span class="kw">I</span>(<span class="st">'Object.keys(global)'</span>))</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">get</span>(<span class="kw">JS</span>(<span class="st">'Object.keys(global)'</span>))</code></pre>
 <pre><code> [1] &quot;console&quot;      &quot;print&quot;        &quot;global&quot;       &quot;ArrayBuffer&quot; 
  [5] &quot;Int8Array&quot;    &quot;Uint8Array&quot;   &quot;Int16Array&quot;   &quot;Uint16Array&quot; 
  [9] &quot;Int32Array&quot;   &quot;Uint32Array&quot;  &quot;Float32Array&quot; &quot;Float64Array&quot;
