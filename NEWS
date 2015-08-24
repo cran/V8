@@ -1,3 +1,10 @@
+0.7
+ - Deprecated support for I() removed. Use JS() instead
+ - Refactored configure script to use pkg-config if available.
+ - Updated libv8 brew script on OSX to v8-3.15
+ - Update libv8 static builds on windows to v3.14.5.10
+ - Ship separate libraries for win32 for more recent compilers
+
 0.6
  - Breaking change: use JS() instead of I() to mark strings as literal JavaScript.
  - ct$source() now always assumes UTF-8 data, even on Windows.
