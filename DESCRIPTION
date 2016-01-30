@@ -1,7 +1,7 @@
 Package: V8
 Type: Package
 Title: Embedded JavaScript Engine
-Version: 0.9
+Version: 0.10
 Author: Jeroen Ooms
 Maintainer: Jeroen Ooms <jeroen.ooms@stat.ucla.edu>
 Description: An R interface to Google's open source JavaScript engine.
@@ -17,7 +17,8 @@ NeedsCompilation: yes
 VignetteBuilder: knitr
 Imports: Rcpp (>= 0.11.5), jsonlite (>= 0.9.14), curl (>= 0.5), utils
 LinkingTo: Rcpp
-Suggests: knitr, rmarkdown
-Packaged: 2015-10-17 15:10:42 UTC; jeroen
+Suggests: testthat, knitr, rmarkdown
+RoxygenNote: 5.0.1
+Packaged: 2016-01-29 13:49:14 UTC; jeroen
 Repository: CRAN
-Date/Publication: 2015-10-18 10:12:34
+Date/Publication: 2016-01-30 00:21:20

@@ -16,6 +16,7 @@
 #include <v8.h>
 #include <Rcpp.h>
 #include "v8_typed_array.h"
+#include "v8_json.h"
 using namespace v8;
 
 /* a linked list keeping track of running contexts */
@@ -69,6 +70,53 @@ static Handle<Value> ConsoleError(const Arguments& args) {
   return v8::Undefined();
 }
 
+static Handle<Value> r_callback(std::string fun, const Arguments& args) {
+  try {
+    Rcpp::Function r_call = Rcpp::Environment::namespace_env("V8")[fun];
+    String::Utf8Value arg0(args[0]);
+    Rcpp::String fun(*arg0);
+    Rcpp::CharacterVector out;
+    if(args[1]->IsUndefined()){
+      out = r_call(fun);
+    } else if(args[2]->IsUndefined()) {
+      String::Utf8Value arg1(json_stringify(args[1]));
+      Rcpp::String json(*arg1);
+      out = r_call(fun, json);
+    } else {
+      String::Utf8Value arg1(json_stringify(args[1]));
+      String::Utf8Value arg2(json_stringify(args[2]));
+      Rcpp::String val(*arg1);
+      Rcpp::String json(*arg2);
+      out = r_call(fun, val, json);
+    }
+    return json_parse(String::New(std::string(out[0]).c_str()));
+  } catch( const std::exception& e ) {
+    return v8::ThrowException(String::New(e.what()));
+  }
+}
+
+/* console.r.call() function */
+static Handle<Value> console_r_call(const Arguments& args) {
+  return r_callback("r_call", args);
+}
+
+/* console.r.get() function */
+static Handle<Value> console_r_get(const Arguments& args) {
+  return r_callback("r_get", args);
+}
+
+/* console.r.eval() function */
+static Handle<Value> console_r_eval(const Arguments& args) {
+  r_callback("r_eval", args);
+  return v8::Undefined();
+}
+
+/* console.r.eval() function */
+static Handle<Value> console_r_assign(const Arguments& args) {
+  r_callback("r_assign", args);
+  return v8::Undefined();
+}
+
 // [[Rcpp::export]]
 ctxptr make_context(bool set_console){
   /* setup console.log */
@@ -83,6 +131,15 @@ ctxptr make_context(bool set_console){
 
     /* emscripted assumes a print function */
     global->Set(String::NewSymbol("print"), FunctionTemplate::New(ConsoleLog));
+
+    /* R callback interface */
+    Handle<ObjectTemplate> console_r = ObjectTemplate::New();
+    console->Set(String::NewSymbol("r"), console_r);
+    console_r->Set(String::NewSymbol("call"), FunctionTemplate::New(console_r_call));
+    console_r->Set(String::NewSymbol("get"), FunctionTemplate::New(console_r_get));
+    console_r->Set(String::NewSymbol("eval"), FunctionTemplate::New(console_r_eval));
+    console_r->Set(String::NewSymbol("assign"), FunctionTemplate::New(console_r_assign));
+
   }
   /* initialize the context */
   lstail->context = Context::New(NULL, global);
