@@ -1,10 +1,9 @@
 #' Run JavaScript in a V8 context
 #'
-#' A \emph{context} is an execution environment that allows separate, unrelated,
-#' JavaScript code to run in a single instance of V8, like a tab in a browser.
-#'
-#' The \code{v8} function is an alias for \code{new_context}, they do exactly the
-#' same thing.
+#' The \code{\link{v8}} function (formerly called \code{new_context}) creates a
+#' new V8 \emph{context}. A context provides an execution environment that allows
+#' separate, unrelated, JavaScript code to run in a single instance of V8, like a
+#' tab in a browser.
 #'
 #' V8 contexts cannot be serialized but creating a new contexts and sourcing code
 #' is very cheap. You can run as many parallel v8 contexts as you want. R packages
@@ -18,9 +17,9 @@
 #' The \code{ct$validate} function is used to test if a piece of code is valid
 #' JavaScript syntax within the context, and always returns TRUE or FALSE.
 #'
-#' JSON is used for all data interchange beteen R and JavaScript. Therefore you can
+#' JSON is used for all data interchange between R and JavaScript. Therefore you can
 #' (and should) only exchange data types that have a sensible JSON representation.
-#' All aguments and objects are automatically converted according to the mapping
+#' All arguments and objects are automatically converted according to the mapping
 #' described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
 #' by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
 #'
@@ -35,20 +34,20 @@
 #'   \item{\code{eval(src)}}{ evaluates a string with JavaScript source code}
 #'   \item{\code{validate(src)}}{ test if a string of JavaScript code is syntactically valid}
 #'   \item{\code{source(file)}}{ evaluates a file with JavaScript code}
-#'   \item{\code{get(name)}}{ convert a JavaScript to R via JSON}
+#'   \item{\code{get(name, ...)}}{ convert a JavaScript to R via JSON. Optional arguments (\code{...}) are passed to \link[jsonlite]{fromJSON} to set JSON coercion options.}
 #'   \item{\code{assign(name, value)}}{ copy an R object to JavaScript via JSON}
 #'   \item{\code{call(fun, ...)}}{ call a JavaScript function with arguments \code{...}. Arguments which are not wrapped in \code{JS()} automatically get converted to JSON}
 #'   \item{\code{reset()}}{ resets the context (removes all objects)}
 #' }
 #' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
-#' @export
+#' @export v8 new_context
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
 #' @param typed_arrays enable support for typed arrays (part of ECMA6). This adds a bunch of additional
 #' functions to the global namespace.
 #' @aliases V8 v8 new_context
 #' @rdname V8
-#' @name Context
+#' @name V8
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom curl curl
 #' @importFrom Rcpp sourceCpp
@@ -69,6 +68,7 @@
 #' # Objects (via JSON only)
 #' ctx$assign("mydata", mtcars)
 #' ctx$get("mydata")
+#' ctx$get("mydata", simplifyVector = FALSE)
 #'
 #' # Assign JavaScript
 #' ctx$assign("foo", JS("function(x){return x*x}"))
@@ -93,14 +93,14 @@
 #' ctx$call("function(x, y){return x * y}", 123, 3)
 #'
 #' \dontrun{CoffeeScript
-#' ct2 <- new_context()
+#' ct2 <- v8()
 #' ct2$source("http://coffeescript.org/extras/coffee-script.js")
 #' jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
 #' ct2$eval(jscode)
 #' ct2$call("square", 9)
 #'
 #' # Interactive console
-#' ct3 <- new_context()
+#' ct3 <- v8()
 #' ct3$console()
 #' //this is JavaScript
 #' var test = [1,2,3]
@@ -114,10 +114,7 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   # Public methods
   this <- local({
     eval <- function(src){
-      if(length(src) > 1){
-        src <- join(src)
-      }
-      get_str_output(context_eval(src, private$context));
+      get_str_output(context_eval(join(src), private$context));
     }
     validate <- function(src){
       context_validate(join(src), private$context)
@@ -227,8 +224,7 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   })
 }
 
-#' @export
-#' @rdname V8
+# For backward compatibility
 new_context <- v8
 
 undefined_to_null <- function(str){
@@ -288,6 +284,8 @@ join <- function (str){
 }
 
 # Override default call argument.
-stop <- function(..., call. = FALSE){
-  base::stop(..., call. = call.)
+stop <- function(x, ..., call. = FALSE){
+  if(inherits(x, "condition"))
+    base::stop(x, ...)
+  base::stop(x, ..., call. = call.)
 }
