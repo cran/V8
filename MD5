@@ -1,14 +1,14 @@
-52565d46f2da300c07edda59ed6c0cd3 *DESCRIPTION
+02d06479fe42a4f5731b1f6223b6b880 *DESCRIPTION
 91443a13b3d89ea22bfa1222461b0111 *LICENSE
 bc217d61f6d709aab3c682fb835eaf25 *NAMESPACE
-032562b20d46d13531e60ad918817136 *NEWS
+762d776bdc39172b93a6bfd53a970214 *NEWS
 af361c8b305e63b41f3f742a1f094ca7 *R/JS.R
 ce46f855299d141eae7451432922b77f *R/RcppExports.R
 dd98fbe48e49a070529f8484acba44bd *R/V8.R
 70bd3ea0bd75001ed9013d11c348f0bd *R/callback.R
 a06f9ef761f211b85da6e62dbf51f409 *R/onLoad.R
 f347fd1c92ad6877b909865cf741c956 *R/tab_complete.R
-3247b25d8deb4bb2b5c476faced80e55 *build/vignette.rds
+69e14276860e11d3869845541372387b *build/vignette.rds
 6273a853fce24efaf78e2404dc6b7804 *configure
 d41d8cd98f00b204e9800998ecf8427e *configure.win
 c290e72c66c1aa7d9bc9fe7703d311d6 *inst/doc/npm.R
@@ -34,5 +34,5 @@ b8b58e1d5c90eaa7d29c69a393bce109 *tests/testthat/test_callback.R
 0a47daaf164cbd98746662bbd630f1b1 *tools/version.cpp
 e6e6533ec6b42d5dea117c8adc035152 *tools/winlibs.R
 55274cc8fdac6a7d8eabd32e8b358209 *vignettes/beautify.js
-410c7d229dcecd6239200aa199adcf3e *vignettes/npm.Rmd
+936cfefbf84b32cd452d7cf473ff8563 *vignettes/npm.Rmd
 a5f4c4745e9053bf4bc75139b5c84986 *vignettes/v8_intro.Rmd
