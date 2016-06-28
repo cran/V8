@@ -1,7 +1,7 @@
 Package: V8
 Type: Package
 Title: Embedded JavaScript Engine for R
-Version: 1.0.2
+Version: 1.0.3
 Author: Jeroen Ooms
 Maintainer: Jeroen Ooms <jeroen.ooms@stat.ucla.edu>
 Description: An R interface to Google's open source JavaScript engine.
@@ -20,6 +20,6 @@ Imports: Rcpp (>= 0.12), jsonlite (>= 0.9.14), curl (>= 0.5), utils
 LinkingTo: Rcpp
 Suggests: testthat, knitr, rmarkdown
 RoxygenNote: 5.0.1
-Packaged: 2016-06-13 22:58:56 UTC; jeroen
+Packaged: 2016-06-27 23:36:21 UTC; jeroen
 Repository: CRAN
-Date/Publication: 2016-06-14 10:31:30
+Date/Publication: 2016-06-28 08:33:37
