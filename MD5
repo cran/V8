@@ -1,14 +1,14 @@
-c4f1cab5c4edc87d5709431e5e7c648c *DESCRIPTION
+8c91274b997a53296cb8126e5a88972e *DESCRIPTION
 91443a13b3d89ea22bfa1222461b0111 *LICENSE
 bc217d61f6d709aab3c682fb835eaf25 *NAMESPACE
-cf9b2603b1a98acdfe4aca46991c56a8 *NEWS
+402773fde887d4d8f7695903b36d50ff *NEWS
 af361c8b305e63b41f3f742a1f094ca7 *R/JS.R
 ce46f855299d141eae7451432922b77f *R/RcppExports.R
 dd98fbe48e49a070529f8484acba44bd *R/V8.R
 70bd3ea0bd75001ed9013d11c348f0bd *R/callback.R
 a06f9ef761f211b85da6e62dbf51f409 *R/onLoad.R
 f347fd1c92ad6877b909865cf741c956 *R/tab_complete.R
-69e14276860e11d3869845541372387b *build/vignette.rds
+d0c6397ba19851f628e8e1409f9e749e *build/vignette.rds
 64f0360ff498fe5da97d1cdedaada544 *configure
 d41d8cd98f00b204e9800998ecf8427e *configure.win
 c290e72c66c1aa7d9bc9fe7703d311d6 *inst/doc/npm.R
@@ -24,7 +24,7 @@ ef23353797a2df3356154370ba446ae7 *inst/doc/v8_intro.html
 20b00580632a498fc93279907240f0c1 *src/Makevars.in
 f74772cf2236da143814bf93c7f266a1 *src/Makevars.win
 64e8e18fe937249fabd4b7d403a227a4 *src/RcppExports.cpp
-ed4c39110a3a209e3d34f8324e84df12 *src/V8.cpp
+6336c4a4e14c14af235b5e54d593d318 *src/V8.cpp
 7a99c38ca74c4ad7c395985c9f1571c6 *src/V8_types.h
 6b6218755d45b7e731900b2450f7c453 *src/v8_json.h
 641e794f626f040a4597eeba8e3bb32e *src/v8_typed_array.cpp
