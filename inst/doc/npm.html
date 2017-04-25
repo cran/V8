@@ -4,7 +4,7 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
@@ -12,7 +12,7 @@
 
 <meta name="author" content="Jeroen Ooms" />
 
-<meta name="date" content="2016-06-28" />
+<meta name="date" content="2017-04-24" />
 
 <title>Using NPM packages in V8</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Using NPM packages in V8</h1>
 <h4 class="author"><em>Jeroen Ooms</em></h4>
-<h4 class="date"><em>2016-06-28</em></h4>
+<h4 class="date"><em>2017-04-24</em></h4>
 
 
 <div id="TOC">
@@ -89,38 +89,38 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <table>
 <thead>
 <tr class="header">
-<th align="left"></th>
-<th align="left">JS Engine</th>
-<th align="left">Evented</th>
-<th align="left">Network</th>
-<th align="left">Disk</th>
-<th align="left">DOM</th>
+<th></th>
+<th>JS Engine</th>
+<th>Evented</th>
+<th>Network</th>
+<th>Disk</th>
+<th>DOM</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">Browser</td>
-<td align="left">✔</td>
-<td align="left">✔</td>
-<td align="left">✔</td>
-<td align="left">-</td>
-<td align="left">✔</td>
+<td>Browser</td>
+<td>✔</td>
+<td>✔</td>
+<td>✔</td>
+<td>-</td>
+<td>✔</td>
 </tr>
 <tr class="even">
-<td align="left">Node</td>
-<td align="left">✔</td>
-<td align="left">✔</td>
-<td align="left">✔</td>
-<td align="left">✔</td>
-<td align="left">-</td>
+<td>Node</td>
+<td>✔</td>
+<td>✔</td>
+<td>✔</td>
+<td>✔</td>
+<td>-</td>
 </tr>
 <tr class="odd">
-<td align="left">V8</td>
-<td align="left">✔</td>
-<td align="left">-</td>
-<td align="left">-</td>
-<td align="left">-</td>
-<td align="left">-</td>
+<td>V8</td>
+<td>✔</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 </tbody>
 </table>
@@ -131,8 +131,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>Yes! But not all packages will work. Most libraries in <a href="https://www.npmjs.com">npm</a> are primarely written for Node or the browser. Obviously, anything that requires internet access, graphics or files is not going to work in plain V8. But there is quite a lot of stuff that does work.</p>
 <p>Some general purpose libraries like underscore or crossfilter will work natively in V8:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ct &lt;-<span class="st"> </span><span class="kw">v8</span>()
-ct$<span class="kw">source</span>(<span class="kw">system.file</span>(<span class="st">&quot;js/underscore.js&quot;</span>, <span class="dt">package=</span><span class="st">&quot;V8&quot;</span>))
-ct$<span class="kw">call</span>(<span class="st">&quot;_.filter&quot;</span>, mtcars, <span class="kw">JS</span>(<span class="st">&quot;function(x){return x.mpg &lt; 15}&quot;</span>))</code></pre></div>
+ct<span class="op">$</span><span class="kw">source</span>(<span class="kw">system.file</span>(<span class="st">&quot;js/underscore.js&quot;</span>, <span class="dt">package=</span><span class="st">&quot;V8&quot;</span>))
+ct<span class="op">$</span><span class="kw">call</span>(<span class="st">&quot;_.filter&quot;</span>, mtcars, <span class="kw">JS</span>(<span class="st">&quot;function(x){return x.mpg &lt; 15}&quot;</span>))</code></pre></div>
 <pre><code>                     mpg cyl disp  hp drat    wt  qsec vs am gear carb
 Duster 360          14.3   8  360 245 3.21 3.570 15.84  0  0    3    4
 Cadillac Fleetwood  10.4   8  472 205 2.93 5.250 17.98  0  0    3    4
@@ -148,20 +148,20 @@ Camaro Z28          13.3   8  350 245 3.73 3.840 15.41  0  0    3    4</code></p
 <p class="caption">browserify logo</p>
 </div>
 <p><a href="http://browserify.org/">Browserify</a> is a brilliant tool to bundle an npm package with all of its dependencies into a single js file that does not require disk access. It is mainly designed to make npm packages suitable for use on a webpage (duh) but it is useful with embedded V8 as well. To install it run:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">npm</span> install -g browserify</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">npm</span> install -g browserify</code></pre></div>
 </div>
 <div id="example-beautify-js" class="section level2">
 <h2>Example: beautify-js</h2>
 <p><a href="https://www.npmjs.com/package/js-beautify">Beautify-js</a> is a simple npm package to fix linebreaks and indentation in JavaScript, HTML or CSS code. To bundle it up, run these three lines in a shell:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">npm</span> install js-beautify
-<span class="kw">echo</span> <span class="st">&quot;global.beautify = require('js-beautify');&quot;</span> <span class="kw">&gt;</span> in.js
-<span class="kw">browserify</span> in.js -o bundle.js</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">npm</span> install js-beautify
+<span class="bu">echo</span> <span class="st">&quot;global.beautify = require('js-beautify');&quot;</span> <span class="op">&gt;</span> in.js
+<span class="ex">browserify</span> in.js -o bundle.js</code></pre></div>
 <p>The first line will install js-beautify in a the current dir under <code>node_modules</code>. The second line creates the input file for browserify. In this case it consists of only one line that imports the js-beautify library and exports it to the global environment. The third line runs browserify and saves the output to a new file <code>bundle.js</code>.</p>
 <p>We now have a file that we can load in V8. Assuming you ran the above commands in your Desktop directory:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ct &lt;-<span class="st"> </span><span class="kw">v8</span>()
-ct$<span class="kw">source</span>(<span class="st">&quot;~/Desktop/bundle.js&quot;</span>)</code></pre></div>
+ct<span class="op">$</span><span class="kw">source</span>(<span class="st">&quot;~/Desktop/bundle.js&quot;</span>)</code></pre></div>
 <p>Let’s see whats in our global environment now:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">get</span>(<span class="kw">JS</span>(<span class="st">'Object.keys(global)'</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ct<span class="op">$</span><span class="kw">get</span>(<span class="kw">JS</span>(<span class="st">'Object.keys(global)'</span>))</code></pre></div>
 <pre><code> [1] &quot;console&quot;      &quot;print&quot;        &quot;global&quot;       &quot;ArrayBuffer&quot; 
  [5] &quot;Int8Array&quot;    &quot;Uint8Array&quot;   &quot;Int16Array&quot;   &quot;Uint16Array&quot; 
  [9] &quot;Int32Array&quot;   &quot;Uint32Array&quot;  &quot;Float32Array&quot; &quot;Float64Array&quot;
@@ -172,7 +172,7 @@ ct$<span class="kw">source</span>(<span class="st">&quot;~/Desktop/bundle.js&quo
 <h2>Lets beautify stuff</h2>
 <p>To beautify JavaScript we need to use the <code>js_beautify</code> function. See the <a href="https://www.npmjs.com/package/js-beautify">package homepage</a> for a full list of options.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">test &lt;-<span class="st"> &quot;(function(x,y){x = x || 1; y = y || 1; return y * x;})(4, 9)&quot;</span>
-pretty_test &lt;-<span class="st"> </span>ct$<span class="kw">call</span>(<span class="st">&quot;beautify.js_beautify&quot;</span>, test, <span class="kw">list</span>(<span class="dt">indent_size =</span> <span class="dv">2</span>))
+pretty_test &lt;-<span class="st"> </span>ct<span class="op">$</span><span class="kw">call</span>(<span class="st">&quot;beautify.js_beautify&quot;</span>, test, <span class="kw">list</span>(<span class="dt">indent_size =</span> <span class="dv">2</span>))
 <span class="kw">cat</span>(pretty_test)</code></pre></div>
 <pre><code>(function(x, y) {
   x = x || 1;
@@ -181,7 +181,7 @@ pretty_test &lt;-<span class="st"> </span>ct$<span class="kw">call</span>(<span 
 })(4, 9)</code></pre>
 <p>The package also includes functions to beautify css and html:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">html &lt;-<span class="st"> &quot;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;li&gt;three&lt;/li&gt;&lt;/ul&gt;&quot;</span>
-<span class="kw">cat</span>(ct$<span class="kw">call</span>(<span class="st">&quot;beautify.html_beautify&quot;</span>, html))</code></pre></div>
+<span class="kw">cat</span>(ct<span class="op">$</span><span class="kw">call</span>(<span class="st">&quot;beautify.html_beautify&quot;</span>, html))</code></pre></div>
 <pre><code>&lt;ul&gt;
     &lt;li&gt;one&lt;/li&gt;
     &lt;li&gt;two&lt;/li&gt;
