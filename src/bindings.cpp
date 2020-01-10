@@ -97,16 +97,16 @@ void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args
     v8::String::Utf8Value arg0(args.GetIsolate(), args[0]);
     Rcpp::String fun(*arg0);
     Rcpp::CharacterVector out;
-    if(args[1]->IsUndefined()){
+    if(args.Length() == 1 || args[1]->IsUndefined()){
       out = r_call(fun);
-    } else if(args[2]->IsUndefined()) {
-      v8::Local<v8::Object> obj1 = v8::Local<v8::Object>::Cast(args[1]);
+    } else if(args.Length() == 2 || args[2]->IsUndefined()) {
+      v8::Local<v8::Object> obj1 = args[1]->ToObject(args.GetIsolate()->GetCurrentContext()).ToLocalChecked();
       v8::String::Utf8Value arg1(args.GetIsolate(), v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj1).ToLocalChecked());
       Rcpp::String json(ToCString(arg1));
       out = r_call(fun, json);
     } else {
-      v8::Local<v8::Object> obj1 = v8::Local<v8::Object>::Cast(args[1]);
-      v8::Local<v8::Object> obj2 = v8::Local<v8::Object>::Cast(args[2]);
+      v8::Local<v8::Object> obj1 = args[1]->ToObject(args.GetIsolate()->GetCurrentContext()).ToLocalChecked();
+      v8::Local<v8::Object> obj2 = args[2]->ToObject(args.GetIsolate()->GetCurrentContext()).ToLocalChecked();
       v8::String::Utf8Value arg1(args.GetIsolate(), v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj1).ToLocalChecked());
       v8::String::Utf8Value arg2(args.GetIsolate(), v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj2).ToLocalChecked());
       Rcpp::String val(ToCString(arg1));
@@ -144,8 +144,27 @@ std::string version(){
   return v8::V8::GetVersion();
 }
 
+static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
+  if(value.IsEmpty() || value->IsNullOrUndefined()){
+    return R_NilValue;
+  } else if(value->IsArrayBuffer() || value->IsArrayBufferView()){
+    v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
+    value.As<v8::ArrayBufferView>()->Buffer() : value.As<v8::ArrayBuffer>();
+    Rcpp::RawVector data(buffer->ByteLength());
+    memcpy(data.begin(), buffer->GetContents().Data(), data.size());
+    return data;
+  } else {
+    //convert to string without jsonify
+    //v8::String::Utf8Value utf8(isolate, value);
+    v8::Local<v8::Object> obj1 = value->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
+    v8::String::Utf8Value utf8(isolate, v8::JSON::Stringify(isolate->GetCurrentContext(), obj1).ToLocalChecked());
+    Rcpp::CharacterVector out = {Rcpp::String(*utf8, CE_UTF8)};
+    return out;
+  }
+}
+
 // [[Rcpp::export]]
-Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx, bool serialize = false){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
@@ -174,11 +193,43 @@ Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Conte
     throw std::runtime_error(ToCString(exception));
   }
 
-  // Convert result to UTF8.
+  // Serialize to JSON or Raw
+  if(serialize == true)
+    return convert_object(result);
+
+  // Convert result to string
   v8::String::Utf8Value utf8(isolate, result);
-  Rcpp::String out(*utf8);
-  out.set_encoding(CE_UTF8);
+  Rcpp::String str(*utf8);
+  str.set_encoding(CE_UTF8);
+  Rcpp::CharacterVector out(1);
+  out.at(0) = str;
   return out;
+}
+
+// [[Rcpp::export]]
+bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+  // Test if context still exists
+  if(!ctx)
+    throw std::runtime_error("v8::Context has been disposed.");
+
+  // Create a scope
+  v8::Isolate::Scope isolate_scope(isolate);
+  v8::HandleScope handle_scope(isolate);
+  v8::Local<v8::Context> context = ctx.checked_get()->Get(isolate);
+  v8::Context::Scope context_scope(context);
+  v8::TryCatch trycatch(isolate);
+
+  // Initiate ArrayBuffer and ArrayBufferView (uint8 typed array)
+  v8::Handle<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, data.size());
+  v8::Handle<v8::Uint8Array> typed_array = v8::Uint8Array::New(buffer, 0, data.size());
+  memcpy(buffer->GetContents().Data(), data.begin(), data.size());
+
+  // Assign to object (delete first if exists)
+  v8::Local<v8::String> name = ToJSString(key.get_cstring());
+  v8::Local<v8::Object> global = context->Global();
+  if(!global->Has(context, name).FromMaybe(true) || !global->Delete(context, name).IsNothing())
+    return !global->Set(context, name, typed_array).IsNothing();
+  return false;
 }
 
 // [[Rcpp::export]]
@@ -254,4 +305,3 @@ ctxptr make_context(bool set_console){
 bool context_enable_typed_arrays( Rcpp::XPtr< v8::Persistent<v8::Context> > ctx ){
   return true;
 }
-
