@@ -66,7 +66,7 @@ JSON is used for data interchange between R and JavaScript. Therefore you can
 (and should) only exchange data types that have a sensible JSON representation.
 One exception is raw vectors which are converted to/from Uint8Array buffers, see
 below. All other arguments and objects are automatically converted according to the mapping
-described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
+described in \href{https://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
 by the jsonlite package in \code{\link[=fromJSON]{fromJSON()}} and \code{\link[=toJSON]{toJSON()}}.
 
 As for version 3.0 of this R package, Raw vectors are converted to \code{Uint8Array}
@@ -146,5 +146,5 @@ ct3$console()
 
 }
 \references{
-A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
+A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{https://arxiv.org/abs/1403.2805}
 }
