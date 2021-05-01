@@ -1,7 +1,7 @@
-99c81b2079d8466565ab52926a62fe4d *DESCRIPTION
+4cf64face39545078b2374463811536e *DESCRIPTION
 1ee0683cce6d3479250337954c075d63 *LICENSE
 320252d1fb978da8250ed4e5d2a4ff21 *NAMESPACE
-97d402515d8d6b393632d403edcda16c *NEWS
+e05309a2c064b9dfcadfad4cb8bec5c3 *NEWS
 35c9d30e4fb8a402de1be7d50beae713 *R/JS.R
 fab51dba23211e31bb025371ada9e2eb *R/RcppExports.R
 9b894912135e6ff3bd8ca29d60637da0 *R/V8.R
@@ -9,17 +9,17 @@ fab51dba23211e31bb025371ada9e2eb *R/RcppExports.R
 a82b0b21b2e55baa754c08737fb30eec *R/onLoad.R
 f347fd1c92ad6877b909865cf741c956 *R/tab_complete.R
 1ccba74e958fbca5ae067e18c553459c *R/wasm.R
-215582364d74b74363d39d33a7c467e8 *build/partial.rdb
+bf89d8183d890cf79e5b6bdb0fc443aa *build/partial.rdb
 b999e9b132254394dc153793217aacfe *build/vignette.rds
 4ce1fcf8d4a4b68aac58e1c00c2db6d0 *cleanup
 c19f346e8acdb8dcd1169aecc927dc7c *configure
 d41d8cd98f00b204e9800998ecf8427e *configure.win
 e1eb4910e7ec1270e6b78aa69ced5769 *inst/doc/npm.R
 790dc0a4c609ea28c8fce0a38e1c5c84 *inst/doc/npm.Rmd
-ff8b2c5cc4d1010bc0564de1f8858eef *inst/doc/npm.html
+a37cade2954bd4d14ab4d8eb9683ca2d *inst/doc/npm.html
 c619173acc8028aff18f857886189792 *inst/doc/v8_intro.R
 cc45dbb47aa8a029cbaedf83acf6c30c *inst/doc/v8_intro.Rmd
-97c59870c8374b9fa1d375b323fc11d2 *inst/doc/v8_intro.html
+52cb0e2d7ed060f8d5597058199c7ff3 *inst/doc/v8_intro.html
 97baf3f73b83250b3f9757740e2ef433 *inst/js/crossfilter.js
 137af05d496f59d468d1ffbce32f375d *inst/js/underscore.js
 d4ea109a8d24f996be8a2fd0574160dd *inst/wasm/add.wasm
@@ -27,6 +27,7 @@ d4ea109a8d24f996be8a2fd0574160dd *inst/wasm/add.wasm
 35d66dd6e5978babd5f098a6ec2bbd16 *man/V8.Rd
 86981c32371ab14b747b97c299aac537 *man/wasm.Rd
 7a7f22c79bc8adc9d59ecad3b78b8044 *src/Makevars.in
+7dc7d138fd4e9279dde9059385bf3cd2 *src/Makevars.ucrt
 90f9d8574bfc6a4c4be6957dfb578b23 *src/Makevars.win
 17a134d64ff3e9368ab7241613e741a2 *src/RcppExports.cpp
 7a99c38ca74c4ad7c395985c9f1571c6 *src/V8_types.h
@@ -49,6 +50,7 @@ fa4e595fbc7b017f32c96c14ab956325 *tests/testthat/test-encoding.R
 ccd10e5fd16e7290481a46c0424f0e5e *tests/testthat/test_serialize.R
 c4f918917477bdc757cb97606e6ca188 *tests/testthat/test_wasm.R
 8a9f4a33bdc3cbcd633395b5e1894f79 *tools/test.cpp
+b11313c37629670a4609bb8ba56cb914 *tools/ucrtlibs.R
 7deb3e8a343c316ad6fedc865db6cace *tools/winlibs.R
 55274cc8fdac6a7d8eabd32e8b358209 *vignettes/beautify.js
 790dc0a4c609ea28c8fce0a38e1c5c84 *vignettes/npm.Rmd
