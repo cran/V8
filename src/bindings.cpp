@@ -1,6 +1,13 @@
 #include <libplatform/libplatform.h>
 #include "V8_types.h"
 
+/* __has_feature is a clang-ism, while __SANITIZE_ADDRESS__ is a gcc-ism */
+#if defined(__clang__) && !defined(__SANITIZE_ADDRESS__)
+#if defined(__has_feature) && __has_feature(address_sanitizer)
+#define __SANITIZE_ADDRESS__ 1
+#endif
+#endif
+
 /* used for setting icu data below */
 #ifdef __APPLE__
 #define V8_ICU_DATA_PATH "/usr/local/opt/v8/libexec/icudtl.dat"
@@ -65,8 +72,11 @@ void start_v8_isolate(void *dll){
   isolate->AddMessageListener(message_cb);
   isolate->SetFatalErrorHandler(fatal_cb);
 
-#ifdef __linux__
-  /* This should fix packages hitting stack limit on Fedora.
+#ifdef __SANITIZE_ADDRESS__
+  /* Disable stack limit when using sanitizers (highest possible value, backwards) */
+  isolate->SetStackLimit(1);
+#else
+  /* Workaround for packages hitting stack limit on Fedora, such as ggdag.
    * CurrentStackPosition trick copied from chromium. */
   static const int kWorkerMaxStackSize = 2000 * 1024;
   uintptr_t CurrentStackPosition = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
@@ -77,6 +87,9 @@ void start_v8_isolate(void *dll){
 /* Helper fun that compiles JavaScript source code */
 static v8::Local<v8::Script> compile_source(std::string src, v8::Local<v8::Context> context){
   v8::Local<v8::String> source = ToJSString(src.c_str());
+  if(source.IsEmpty()){
+    throw std::runtime_error("Failed to load JavaScript source. Check memory/stack limits.");
+  }
   v8::MaybeLocal<v8::Script> script = v8::Script::Compile(context, source);
   return safe_to_local(script);
 }
@@ -205,7 +218,11 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
   v8::Local<v8::Script> script = compile_source(src, ctx.checked_get()->Get(isolate));
   if(script.IsEmpty()) {
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
-    throw std::invalid_argument(ToCString(exception));
+    if(*exception){
+      throw std::invalid_argument(ToCString(exception));
+    } else {
+      throw std::runtime_error("Failed to interpret script. Check memory/stack limits.");
+    }
   }
 
   // Run the script to get the result.
@@ -311,6 +328,8 @@ ctxptr make_context(bool set_console){
   // emscripted requires a print function
   global->Set(ToJSString("print"), v8::FunctionTemplate::New(isolate, ConsoleLog));
   v8::Local<v8::Context> context = v8::Context::New(isolate, NULL, global);
+  if(*context == NULL)
+    throw std::runtime_error("Failed to create new context. Check memory stack limits.");
   v8::Context::Scope context_scope(context);
 
   v8::Local<v8::String> console = ToJSString("console");
