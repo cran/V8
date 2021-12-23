@@ -38,6 +38,30 @@ ct$get("bar")
 ## -----------------------------------------------------------------------------
 ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 
+## ----error=TRUE---------------------------------------------------------------
+js = 'function test_number(x){
+  var promise = new Promise(function(resolve, reject) {
+    if(x == 42)
+      resolve(true)
+    else
+      reject("This is wrong")
+  })
+  return promise;
+}'
+
+# Call will just show a promise
+ctx <- V8::v8()
+ctx$eval(js)
+
+# A promise does not return anything in itself:
+ctx$call("test_number", 42)
+
+# Resolve the promise to the result
+ctx$call("test_number", 42, await = TRUE)
+
+# A rejected promise will throw an error
+ctx$call("test_number", 41, await = TRUE)
+
 ## ---- eval=FALSE--------------------------------------------------------------
 #  # Load some data
 #  data(diamonds, package = "ggplot2")
