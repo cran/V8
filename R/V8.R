@@ -314,7 +314,7 @@ print.V8 <- function(x, ...){
     cat("This context has been disposed.")
   } else {
     ns <- ls(x)
-    title <- sprintf("<V8 engine %s>", engine_info()$version)
+    title <- sprintf("<V8 engine %s>", version())
     cat(title, "\n")
     lapply(ns, function(fn){
       cat(format_function(x[[fn]], fn), sep = "\n")
@@ -347,8 +347,14 @@ stop <- function(x, ..., call. = FALSE){
 #' @export
 engine_info <- function(){
   list (
-    version = version()
+    version = version(),
+    numeric_version = v8_version_numeric()
   )
+}
+
+# normalizes e.g. 7.8.279.23-node.56
+v8_version_numeric <- function(){
+  numeric_version(sub('^([0-9.]+).*', '\\1', version()))
 }
 
 raw_to_js <- function(x){

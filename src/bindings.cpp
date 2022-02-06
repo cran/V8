@@ -144,9 +144,9 @@ static void ConsoleError(const v8::FunctionCallbackInfo<v8::Value>& args) {
   args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
 }
 
-void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args) {
+void r_callback(std::string cb, const v8::FunctionCallbackInfo<v8::Value>& args) {
   try {
-    Rcpp::Function r_call = Rcpp::Environment::namespace_env("V8")[fun];
+    Rcpp::Function r_call = Rcpp::Environment::namespace_env("V8")[cb];
     v8::String::Utf8Value arg0(args.GetIsolate(), args[0]);
     Rcpp::String fun(*arg0);
     Rcpp::CharacterVector out;
@@ -166,7 +166,12 @@ void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args
       Rcpp::String json(ToCString(arg2));
       out = r_call(fun, val, json);
     }
-    args.GetReturnValue().Set( v8::JSON::Parse(args.GetIsolate()->GetCurrentContext(), ToJSString(std::string(out[0]).c_str())).ToLocalChecked());
+    v8::Local<v8::String> outstr(ToJSString(std::string(out.at(0)).c_str()));
+    if(out.inherits("cb_error")){
+      args.GetIsolate()->ThrowException(outstr);
+    } else {
+      args.GetReturnValue().Set( v8::JSON::Parse(args.GetIsolate()->GetCurrentContext(), outstr).ToLocalChecked());
+    }
   } catch( const std::exception& e ) {
     args.GetIsolate()->ThrowException(ToJSString(e.what()));
   }
