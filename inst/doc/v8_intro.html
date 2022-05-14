@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2022-02-06" />
+<meta name="date" content="2022-05-14" />
 
 <title>Introduction to V8 for R</title>
 
@@ -1329,6 +1329,7 @@ if (window.hljs) {
 
 
 
+
 <style type="text/css">
 .main-container {
   max-width: 940px;
@@ -1349,6 +1350,9 @@ button.code-folding-btn:focus {
 }
 summary {
   display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
 }
 pre code {
   padding: 0;
@@ -1512,12 +1516,15 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Introduction to V8 for R</h1>
-<h4 class="date">2022-02-06</h4>
+<h4 class="date">2022-05-14</h4>
 
 </div>
 
 
-<p>V8 is Google’s open source, high performance JavaScript engine. It is written in C++ and implements ECMAScript as specified in ECMA-262, 5th edition. The V8 R package builds on the C++ library to provide a completely standalone JavaScript engine within R:</p>
+<p>V8 is Google’s open source, high performance JavaScript engine. It is
+written in C++ and implements ECMAScript as specified in ECMA-262, 5th
+edition. The V8 R package builds on the C++ library to provide a
+completely standalone JavaScript engine within R:</p>
 <pre class="r"><code># Create a new context
 ct &lt;- v8()
 
@@ -1526,23 +1533,32 @@ ct$eval(&quot;var foo = 123&quot;)
 ct$eval(&quot;var bar = 456&quot;)
 ct$eval(&quot;foo + bar&quot;)</code></pre>
 <pre><code>[1] &quot;579&quot;</code></pre>
-<p>A major advantage over the other foreign language interfaces is that V8 requires no compilers, external executables or other run-time dependencies. The entire engine is contained within a 6MB package (2MB zipped) and works on all major platforms.</p>
+<p>A major advantage over the other foreign language interfaces is that
+V8 requires no compilers, external executables or other run-time
+dependencies. The entire engine is contained within a 6MB package (2MB
+zipped) and works on all major platforms.</p>
 <pre class="r"><code># Create some JSON
 cat(ct$eval(&quot;JSON.stringify({x:Math.random()})&quot;))</code></pre>
-<pre><code>{&quot;x&quot;:0.34936815607150074}</code></pre>
+<pre><code>{&quot;x&quot;:0.34091602380960295}</code></pre>
 <pre class="r"><code># Simple closure
 ct$eval(&quot;(function(x){return x+1;})(123)&quot;)</code></pre>
 <pre><code>[1] &quot;124&quot;</code></pre>
-<p>However note that V8 by itself is just the naked JavaScript engine. Currently, there is no DOM (i.e. no <em>window</em> object), no network or disk IO, not even an event loop. Which is fine because we already have all of those in R. In this sense V8 resembles other foreign language interfaces such as Rcpp or rJava, but then for JavaScript.</p>
+<p>However note that V8 by itself is just the naked JavaScript engine.
+Currently, there is no DOM (i.e. no <em>window</em> object), no network
+or disk IO, not even an event loop. Which is fine because we already
+have all of those in R. In this sense V8 resembles other foreign
+language interfaces such as Rcpp or rJava, but then for JavaScript.</p>
 <div id="loading-javascript-libraries" class="section level2">
 <h2>Loading JavaScript Libraries</h2>
-<p>The <code>ct$source</code> method is a convenience function for loading JavaScript libraries from a file or url.</p>
+<p>The <code>ct$source</code> method is a convenience function for
+loading JavaScript libraries from a file or url.</p>
 <pre class="r"><code>ct$source(system.file(&quot;js/underscore.js&quot;, package=&quot;V8&quot;))
 ct$source(&quot;https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js&quot;)</code></pre>
 </div>
 <div id="data-interchange" class="section level2">
 <h2>Data Interchange</h2>
-<p>By default all data interchange between R and JavaScript happens via JSON using the bidirectional mapping implemented in the <a href="https://arxiv.org/abs/1403.2805">jsonlite</a> package.</p>
+<p>By default all data interchange between R and JavaScript happens via
+JSON using the bidirectional mapping implemented in the <a href="https://arxiv.org/abs/1403.2805">jsonlite</a> package.</p>
 <pre class="r"><code>ct$assign(&quot;mydata&quot;, mtcars)
 ct$get(&quot;mydata&quot;)</code></pre>
 <pre><code>                     mpg cyl  disp  hp drat    wt  qsec vs am gear carb
@@ -1578,7 +1594,8 @@ Ford Pantera L      15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4
 Ferrari Dino        19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6
 Maserati Bora       15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8
 Volvo 142E          21.4   4 121.0 109 4.11 2.780 18.60  1  1    4    2</code></pre>
-<p>Alternatively use <code>JS()</code> to assign the value of a JavaScript expression (without converting to JSON):</p>
+<p>Alternatively use <code>JS()</code> to assign the value of a
+JavaScript expression (without converting to JSON):</p>
 <pre class="r"><code>ct$assign(&quot;foo&quot;, JS(&quot;function(x){return x*x}&quot;))
 ct$assign(&quot;bar&quot;, JS(&quot;foo(9)&quot;))
 ct$get(&quot;bar&quot;)</code></pre>
@@ -1586,7 +1603,9 @@ ct$get(&quot;bar&quot;)</code></pre>
 </div>
 <div id="function-calls" class="section level2">
 <h2>Function Calls</h2>
-<p>The <code>ct$call</code> method calls a JavaScript function, automatically converting objects (arguments and return value) between R and JavaScript:</p>
+<p>The <code>ct$call</code> method calls a JavaScript function,
+automatically converting objects (arguments and return value) between R
+and JavaScript:</p>
 <pre class="r"><code>ct$call(&quot;_.filter&quot;, mtcars, JS(&quot;function(x){return x.mpg &lt; 15}&quot;))</code></pre>
 <pre><code>                     mpg cyl disp  hp drat    wt  qsec vs am gear carb
 Duster 360          14.3   8  360 245 3.21 3.570 15.84  0  0    3    4
@@ -1594,11 +1613,16 @@ Cadillac Fleetwood  10.4   8  472 205 2.93 5.250 17.98  0  0    3    4
 Lincoln Continental 10.4   8  460 215 3.00 5.424 17.82  0  0    3    4
 Chrysler Imperial   14.7   8  440 230 3.23 5.345 17.42  0  0    3    4
 Camaro Z28          13.3   8  350 245 3.73 3.840 15.41  0  0    3    4</code></pre>
-<p>It looks a bit like <code>.Call</code> but then for JavaScript instead of C.</p>
+<p>It looks a bit like <code>.Call</code> but then for JavaScript
+instead of C.</p>
 </div>
 <div id="promises" class="section level2">
 <h2>Promises</h2>
-<p>If a call to <code>ct$eval()</code>, <code>ct$get()</code>, or <code>ct$call()</code> returns a JavaScript promise, you can set <code>await = TRUE</code> to wait for the promise to be resolved. It will then return the result of the promise, or an error in case the promise is rejected.</p>
+<p>If a call to <code>ct$eval()</code>, <code>ct$get()</code>, or
+<code>ct$call()</code> returns a JavaScript promise, you can set
+<code>await = TRUE</code> to wait for the promise to be resolved. It
+will then return the result of the promise, or an error in case the
+promise is rejected.</p>
 <pre class="r"><code>js = &#39;function test_number(x){
   var promise = new Promise(function(resolve, reject) {
     if(x == 42)
@@ -1625,18 +1649,22 @@ ctx$call(&quot;test_number&quot;, 41, await = TRUE)</code></pre>
 </div>
 <div id="interactive-javascript-console" class="section level2">
 <h2>Interactive JavaScript Console</h2>
-<p>A fun way to learn JavaScript or debug a session is by entering the interactive console:</p>
+<p>A fun way to learn JavaScript or debug a session is by entering the
+interactive console:</p>
 <pre class="r"><code># Load some data
 data(diamonds, package = &quot;ggplot2&quot;)
 ct$assign(&quot;diamonds&quot;, diamonds)
 ct$console()</code></pre>
-<p>From here you can interactively work in JavaScript without typing <code>ct$eval</code> every time:</p>
+<p>From here you can interactively work in JavaScript without typing
+<code>ct$eval</code> every time:</p>
 <pre class="javascript"><code>var cf = crossfilter(diamonds)
 var price = cf.dimension(function(x){return x.price})
 var depth = cf.dimension(function(x){return x.depth})
 price.filter([2000, 3000])
 output = depth.top(10)</code></pre>
-<p>To exit the console, either press <code>ESC</code> or type <code>exit</code>. Afterwards you can retrieve the objects back into R:</p>
+<p>To exit the console, either press <code>ESC</code> or type
+<code>exit</code>. Afterwards you can retrieve the objects back into
+R:</p>
 <pre class="r"><code>output &lt;- ct$get(&quot;output&quot;)
 print(output)</code></pre>
 </div>
@@ -1646,33 +1674,47 @@ print(output)</code></pre>
 <pre class="r"><code># A common typo
 ct$eval(&#39;var foo &lt;- 123;&#39;)</code></pre>
 <pre><code>Error in context_eval(join(src), private$context, serialize, await): SyntaxError: Unexpected token &#39;&lt;&#39;</code></pre>
-<p>JavaScript runtime exceptions are automatically propagated into R errors:</p>
+<p>JavaScript runtime exceptions are automatically propagated into R
+errors:</p>
 <pre class="r"><code># Runtime errors
 ct$eval(&quot;123 + doesnotexit&quot;)</code></pre>
 <pre><code>Error in context_eval(join(src), private$context, serialize, await): ReferenceError: doesnotexit is not defined</code></pre>
-<p>Within JavaScript we can also call back to the R console manually using <code>console.log</code>, <code>console.warn</code> and <code>console.error</code>. This allows for explicitly generating output, warnings or errors from within a JavaScript application.</p>
+<p>Within JavaScript we can also call back to the R console manually
+using <code>console.log</code>, <code>console.warn</code> and
+<code>console.error</code>. This allows for explicitly generating
+output, warnings or errors from within a JavaScript application.</p>
 <pre class="r"><code>ct$eval(&#39;console.log(&quot;this is a message&quot;)&#39;)</code></pre>
 <pre><code>this is a message</code></pre>
 <pre class="r"><code>ct$eval(&#39;console.warn(&quot;Heads up!&quot;)&#39;)</code></pre>
 <pre><code>Warning: Heads up!</code></pre>
 <pre class="r"><code>ct$eval(&#39;console.error(&quot;Oh no! An error!&quot;)&#39;)</code></pre>
 <pre><code>Error in context_eval(join(src), private$context, serialize, await): Oh no! An error!</code></pre>
-<p>A example of using <code>console.error</code> is to verify that external resources were loaded:</p>
+<p>A example of using <code>console.error</code> is to verify that
+external resources were loaded:</p>
 <pre class="r"><code>ct &lt;- v8()
 ct$source(&quot;https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js&quot;)
 ct$eval(&#39;var cf = crossfilter || console.error(&quot;failed to load crossfilter!&quot;)&#39;)</code></pre>
 </div>
 <div id="the-global-namespace" class="section level2">
 <h2>The Global Namespace</h2>
-<p>Unlike what you might be used to from Node or your browser, the global namespace for a new context if very minimal. By default it contains only a few objects: <code>global</code> (a reference to itself), <code>console</code> (for <code>console.log</code> and friends) and <code>print</code> (an alias of console.log needed by some JavaScript libraries)</p>
+<p>Unlike what you might be used to from Node or your browser, the
+global namespace for a new context if very minimal. By default it
+contains only a few objects: <code>global</code> (a reference to
+itself), <code>console</code> (for <code>console.log</code> and friends)
+and <code>print</code> (an alias of console.log needed by some
+JavaScript libraries)</p>
 <pre class="r"><code>ct &lt;- v8(typed_arrays = FALSE);
 ct$get(JS(&quot;Object.keys(global)&quot;))</code></pre>
 <pre><code>[1] &quot;print&quot;   &quot;console&quot; &quot;global&quot; </code></pre>
-<p>If typed arrays are enabled it contains some additional functions:</p>
+<p>If typed arrays are enabled it contains some additional
+functions:</p>
 <pre class="r"><code>ct &lt;- v8(typed_arrays = TRUE);
 ct$get(JS(&quot;Object.keys(global)&quot;))</code></pre>
 <pre><code>[1] &quot;print&quot;   &quot;console&quot; &quot;global&quot; </code></pre>
-<p>A context always has a global scope, even when no name is set. When a context is initiated with <code>global = NULL</code>, it can still be reached by evaluating the <code>this</code> keyword within the global scope:</p>
+<p>A context always has a global scope, even when no name is set. When a
+context is initiated with <code>global = NULL</code>, it can still be
+reached by evaluating the <code>this</code> keyword within the global
+scope:</p>
 <pre class="r"><code>ct2 &lt;- v8(global = NULL, console = FALSE)
 ct2$get(JS(&quot;Object.keys(this).length&quot;))</code></pre>
 <pre><code>[1] 1</code></pre>
@@ -1691,15 +1733,19 @@ ct2$get(&quot;bar&quot;)</code></pre>
 </div>
 <div id="syntax-validation" class="section level2">
 <h2>Syntax Validation</h2>
-<p>V8 also allows for validating JavaScript syntax, without actually evaluating it.</p>
+<p>V8 also allows for validating JavaScript syntax, without actually
+evaluating it.</p>
 <pre class="r"><code>ct$validate(&quot;function foo(x){2*x}&quot;)</code></pre>
 <pre><code>[1] TRUE</code></pre>
 <pre class="r"><code>ct$validate(&quot;foo = function(x){2*x}&quot;)</code></pre>
 <pre><code>[1] TRUE</code></pre>
-<p>This might be useful for all those R libraries that generate browser graphics via templated JavaScript. Note that JavaScript does not allow for defining anonymous functions in the global scope:</p>
+<p>This might be useful for all those R libraries that generate browser
+graphics via templated JavaScript. Note that JavaScript does not allow
+for defining anonymous functions in the global scope:</p>
 <pre class="r"><code>ct$validate(&quot;function(x){2*x}&quot;)</code></pre>
 <pre><code>[1] FALSE</code></pre>
-<p>To check if an anonymous function is syntactically valid, prefix it with <code>!</code> or wrap in <code>()</code>. These are OK:</p>
+<p>To check if an anonymous function is syntactically valid, prefix it
+with <code>!</code> or wrap in <code>()</code>. These are OK:</p>
 <pre class="r"><code>ct$validate(&quot;(function(x){2*x})&quot;)</code></pre>
 <pre><code>[1] TRUE</code></pre>
 <pre class="r"><code>ct$validate(&quot;!function(x){2*x}&quot;)</code></pre>
@@ -1707,10 +1753,15 @@ ct2$get(&quot;bar&quot;)</code></pre>
 </div>
 <div id="callback-to-r" class="section level2">
 <h2>Callback To R</h2>
-<p>A recently added feature is to interact with R from within JavaScript using the <code>console.r</code> API`. This is most easily demonstrated via the interactive console.</p>
+<p>A recently added feature is to interact with R from within JavaScript
+using the <code>console.r</code> API`. This is most easily demonstrated
+via the interactive console.</p>
 <pre class="r"><code>ctx &lt;- v8()
 ctx$console()</code></pre>
-<p>From JavaScript we can read/write R objects via <code>console.r.get</code> and <code>console.r.assign</code>. The final argument is an optional list specifying arguments passed to <code>toJSON</code> or <code>fromJSON</code>.</p>
+<p>From JavaScript we can read/write R objects via
+<code>console.r.get</code> and <code>console.r.assign</code>. The final
+argument is an optional list specifying arguments passed to
+<code>toJSON</code> or <code>fromJSON</code>.</p>
 <pre class="javascript"><code>// read the iris object into JS
 var iris = console.r.get(&quot;iris&quot;)
 var iris_col = console.r.get(&quot;iris&quot;, {dataframe : &quot;col&quot;})
@@ -1718,16 +1769,28 @@ var iris_col = console.r.get(&quot;iris&quot;, {dataframe : &quot;col&quot;})
 //write an object back to the R session
 console.r.assign(&quot;iris2&quot;, iris)
 console.r.assign(&quot;iris3&quot;, iris, {simplifyVector : false})</code></pre>
-<p>To call R functions use <code>console.r.call</code>. The first argument should be a string which evaluates to a function. The second argument contains a list of arguments passed to the function, similar to <code>do.call</code> in R. Both named and unnamed lists are supported. The return object is returned to JavaScript via JSON.</p>
+<p>To call R functions use <code>console.r.call</code>. The first
+argument should be a string which evaluates to a function. The second
+argument contains a list of arguments passed to the function, similar to
+<code>do.call</code> in R. Both named and unnamed lists are supported.
+The return object is returned to JavaScript via JSON.</p>
 <pre class="javascript"><code>//calls rnorm(n=2, mean=10, sd=5)
 var out = console.r.call(&#39;rnorm&#39;, {n: 2,mean:10, sd:5})
 var out = console.r.call(&#39;rnorm&#39;, [2, 20, 5])
 
 //anonymous function
 var out = console.r.call(&#39;function(x){x^2}&#39;, {x:12})</code></pre>
-<p>There is also an <code>console.r.eval</code> function, which evaluates some code. It takes only a single argument (the string to evaluate) and does not return anything. Output is printed to the console.</p>
+<p>There is also an <code>console.r.eval</code> function, which
+evaluates some code. It takes only a single argument (the string to
+evaluate) and does not return anything. Output is printed to the
+console.</p>
 <pre class="javascript"><code>console.r.eval(&#39;sessionInfo()&#39;)</code></pre>
-<p>Besides automatically converting objects, V8 also propagates exceptions between R, C++ and JavaScript up and down the stack. Hence you can catch R errors as JavaScript exceptions when calling an R function from JavaScript or vice versa. If nothing gets caught, exceptions bubble all the way up as R errors in your top-level R session.</p>
+<p>Besides automatically converting objects, V8 also propagates
+exceptions between R, C++ and JavaScript up and down the stack. Hence
+you can catch R errors as JavaScript exceptions when calling an R
+function from JavaScript or vice versa. If nothing gets caught,
+exceptions bubble all the way up as R errors in your top-level R
+session.</p>
 <pre class="javascript"><code>//raise an error in R
 console.r.call(&#39;stop(&quot;ouch!&quot;)&#39;)
 
