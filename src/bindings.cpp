@@ -1,7 +1,21 @@
 #include <libplatform/libplatform.h>
 #include "V8_types.h"
 
-#if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) < 803
+/* use conditional apis below */
+#define V8_VERSION_TOTAL (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION)
+
+/* we dont assume <node/node_version.h> is installed */
+#ifdef ISNODEJS
+#if V8_MAJOR_VERSION == 10
+#define NODEJS_LTS_API 18
+#elif V8_MAJOR_VERSION == 9
+#define NODEJS_LTS_API 16
+#elif V8_MAJOR_VERSION == 8
+#define NODEJS_LTS_API 14
+#endif
+#endif
+
+#if V8_VERSION_TOTAL < 803
 #define PerformMicrotaskCheckpoint RunMicrotasks
 #endif
 
@@ -24,7 +38,7 @@ v8::Local<T> safe_to_local(v8::MaybeLocal<T> x){
   return x.IsEmpty() ? v8::Local<T>() : x.ToLocalChecked();
 }
 
-void ctx_finalizer( v8::Persistent<v8::Context>* context ){
+void ctx_finalizer(ctx_type* context ){
   if(context)
     context->Reset();
   delete context;
@@ -60,7 +74,7 @@ void start_v8_isolate(void *dll){
     v8::V8::InitializeICUDefaultLocation(V8_ICU_DATA_PATH);
   }
 #endif
-#if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 704
+#if V8_VERSION_TOTAL >= 704
   std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
   v8::V8::InitializePlatform(platform.get());
   platformptr = platform.get();
@@ -208,10 +222,13 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
     v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
     value.As<v8::ArrayBufferView>()->Buffer() : value.As<v8::ArrayBuffer>();
     Rcpp::RawVector data(buffer->ByteLength());
-#if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 901
-    memcpy(data.begin(), buffer->GetBackingStore()->Data(), data.size());
-#else
+#if V8_VERSION_TOTAL >= 1005 || NODEJS_LTS_API == 18
+    memcpy(data.begin(), buffer->Data(), data.size());
+#elif V8_VERSION_TOTAL < 901 || NODEJS_LTS_API == 16
     memcpy(data.begin(), buffer->GetContents().Data(), data.size());
+#else
+    /* Try to avoid this API: https://github.com/jeroen/V8/issues/152 */
+    memcpy(data.begin(), buffer->GetBackingStore()->Data(), data.size());
 #endif
     return data;
   } else {
@@ -224,7 +241,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
 }
 
 // [[Rcpp::export]]
-Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx, bool serialize = false, bool await = false){
+Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize = false, bool await = false){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
@@ -235,11 +252,12 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
   // Create a scope
   v8::Isolate::Scope isolate_scope(isolate);
   v8::HandleScope handle_scope(isolate);
-  v8::Context::Scope context_scope(ctx.checked_get()->Get(isolate));
+  v8::Local<v8::Context> context = ctx.checked_get()->Get(isolate);
+  v8::Context::Scope context_scope(context);
 
   // Compile source code
   v8::TryCatch trycatch(isolate);
-  v8::Local<v8::Script> script = compile_source(src, ctx.checked_get()->Get(isolate));
+  v8::Local<v8::Script> script = compile_source(src, context);
   if(script.IsEmpty()) {
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
     if(*exception){
@@ -250,7 +268,7 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
   }
 
   // Run the script to get the result.
-  v8::MaybeLocal<v8::Value> res = script->Run(ctx.checked_get()->Get(isolate));
+  v8::MaybeLocal<v8::Value> res = script->Run(context);
   v8::Local<v8::Value> result = safe_to_local(res);
   if(result.IsEmpty()){
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
@@ -295,7 +313,7 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
 }
 
 // [[Rcpp::export]]
-bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, ctxptr ctx){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
@@ -310,10 +328,13 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::
   // Initiate ArrayBuffer and ArrayBufferView (uint8 typed array)
   v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, data.size());
   v8::Local<v8::Uint8Array> typed_array = v8::Uint8Array::New(buffer, 0, data.size());
-#if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 901
-  memcpy(buffer->GetBackingStore()->Data(), data.begin(), data.size());
-#else
+
+#if V8_VERSION_TOTAL >= 1005 || NODEJS_LTS_API == 18
+  memcpy(buffer->Data(), data.begin(), data.size());
+#elif V8_VERSION_TOTAL < 901 || NODEJS_LTS_API == 16
   memcpy(buffer->GetContents().Data(), data.begin(), data.size());
+#else
+  memcpy(buffer->GetBackingStore()->Data(), data.begin(), data.size());
 #endif
 
   // Assign to object (delete first if exists)
@@ -325,7 +346,7 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::
 }
 
 // [[Rcpp::export]]
-bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
+bool context_validate(Rcpp::String src, ctxptr ctx) {
 
   // Test if context still exists
   if(!ctx)
@@ -346,7 +367,7 @@ bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> 
 }
 
 // [[Rcpp::export]]
-bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context>> ctx) {
+bool context_null(ctxptr ctx) {
   // Test if context still exists
   return(!ctx);
 }
@@ -392,11 +413,11 @@ ctxptr make_context(bool set_console){
     if(context->Global()->Set(context, console, console_template()).IsNothing())
       Rcpp::warning("Could not set console.");
   }
-  v8::Persistent<v8::Context> *ptr = new v8::Persistent<v8::Context>(isolate, context);
+  ctx_type *ptr = new ctx_type(isolate, context);
   return ctxptr(ptr);
 }
 
 // [[Rcpp::export]]
-bool context_enable_typed_arrays( Rcpp::XPtr< v8::Persistent<v8::Context> > ctx ){
+bool context_enable_typed_arrays(ctxptr ctx){
   return true;
 }
