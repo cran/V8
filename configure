@@ -84,11 +84,6 @@ elif [ "$IS_MACOS" ]; then
     curl -sfL "https://autobrew.github.io/scripts/$PKG_BREW_NAME" > autobrew
     . ./autobrew
   fi
-elif [ "$UNAME" = "SunOS" ]; then
-  # libv8 version in OpenCSW is 10 years old, unusable at this point
-  PATH="/opt/csw/bin:$PATH"
-  curl -sfL "http://jeroen.github.io/V8/get-v8-sun.sh" > get-v8-sun.sh
-  . ./get-v8-sun.sh
 elif [ "$DOWNLOAD_STATIC_LIBV8" ]; then
   ${R_HOME}/bin/R -s -e 'curl::curl_download("http://jeroen.github.io/V8/get-v8-linux.sh","get-v8-linux.sh")' && . ./get-v8-linux.sh || true
 fi
@@ -127,19 +122,33 @@ if [ $? -eq 0 ]; then
   exit 0
 fi
 
-# Test if we need to enable pointer compression (Usually 8.4 and up)
+# Test if we need to enable pointer compression (Usually V8 8.4 and up, except for NodeJS)
 echo "Running feature test for pointer compression..."
-${CXX} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} -DV8_ENABLE_CHECKS tools/test.cpp -o pctest ${PKG_LIBS} ${LDFLAGS} -ldl -pthread
-{ ./pctest; } 2>> configure.log
+${CXX} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} -DV8_ENABLE_CHECKS tools/test.cpp -o pctest1 ${PKG_LIBS} ${LDFLAGS} -ldl -pthread
+{ ./pctest1; } 2>> configure.log
 if [ $? -eq 0 ]; then
   echo "Pointer compression not needed"
   PKG_CFLAGS="$PKG_CFLAGS -DV8_ENABLE_CHECKS"
 else
   echo "Enabling pointer compression"
   PKG_CFLAGS="$PKG_CFLAGS -DV8_COMPRESS_POINTERS"
-fi
-rm -Rf pctest*
 
+  echo "Running feature test for sandbox..."
+  ${CXX} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} tools/test.cpp -o pctest2 ${LDFLAGS} ${PKG_LIBS} -ldl -pthread
+  { ./pctest2; } 2> configure.log
+  if [ $? -ne 0 ]; then
+    if grep -Fq "sandbox" "configure.log"; then
+      echo "Enabling sandbox"
+      PKG_CFLAGS="$PKG_CFLAGS -DV8_ENABLE_SANDBOX"
+    else
+      grep 'mismatch' configure.log && exit 1
+    fi
+  else
+    echo "Sandbox not enabled"
+  fi
+fi
+
+rm -Rf pctest*
 
 # Test the runtime V8 version is nodejs
 ${CXX} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} tools/version.cpp -o v8version ${PKG_LIBS} ${LDFLAGS} -ldl -pthread || true

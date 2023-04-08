@@ -18,13 +18,9 @@ cat(ct$eval("JSON.stringify({x:Math.random()})"))
 # Simple closure
 ct$eval("(function(x){return x+1;})(123)")
 
-## ---- eval=FALSE--------------------------------------------------------------
-#  ct$source(system.file("js/underscore.js", package="V8"))
-#  ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js")
-
-## ----echo=FALSE, results='hide'-----------------------------------------------
-ct$source(system.file("js/underscore.js", package="V8"))
-ct$source(system.file("js/crossfilter.js", package="V8"))
+## -----------------------------------------------------------------------------
+ct$source('https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js')
+ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js")
 
 ## -----------------------------------------------------------------------------
 ct$assign("mydata", mtcars)

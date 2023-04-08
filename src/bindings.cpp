@@ -124,7 +124,7 @@ static void pump_promises(){
 /* Try to resolve pending promises */
 static void ConsolePump(const v8::FunctionCallbackInfo<v8::Value>& args) {
   pump_promises();
-  args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+  //args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
 }
 
 
@@ -136,7 +136,7 @@ static void ConsoleLog(const v8::FunctionCallbackInfo<v8::Value>& args) {
     Rprintf("%s", ToCString(str));
   }
   Rprintf("\n");
-  args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+  //args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
 }
 
 /* console.warn */
@@ -146,7 +146,7 @@ static void ConsoleWarn(const v8::FunctionCallbackInfo<v8::Value>& args) {
     v8::String::Utf8Value str(args.GetIsolate(), args[i]);
     Rf_warningcall_immediate(R_NilValue, ToCString(str));
   }
-  args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+  //args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
 }
 
 /* console.error */
@@ -154,7 +154,7 @@ static void ConsoleError(const v8::FunctionCallbackInfo<v8::Value>& args) {
   if(args.Length()){
     args.GetIsolate()->ThrowException(args[0]);
   }
-  args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+  //args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
 }
 
 void r_callback(std::string cb, const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -227,7 +227,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
 #elif V8_VERSION_TOTAL < 901 || NODEJS_LTS_API == 16
     memcpy(data.begin(), buffer->GetContents().Data(), data.size());
 #else
-    /* Try to avoid this API: https://github.com/jeroen/V8/issues/152 */
+    /* Try to avoid this API: github.com/jeroen/V8/issues/152 */
     memcpy(data.begin(), buffer->GetBackingStore()->Data(), data.size());
 #endif
     return data;

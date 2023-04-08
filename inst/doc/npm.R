@@ -4,7 +4,7 @@ library(V8)
 
 ## -----------------------------------------------------------------------------
 ct <- v8()
-ct$source(system.file("js/underscore.js", package = "V8"))
+ct$source('https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js')
 ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 
 ## ----eval=FALSE---------------------------------------------------------------
@@ -12,8 +12,11 @@ ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 #  ct$source("~/Desktop/bundle.js")
 
 ## ----echo=FALSE, results='hide'-----------------------------------------------
+# Hack because we unbundled this library
 ct <- v8()
-ct$source("beautify.js")
+ct$source("https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.7/beautify.min.js")
+ct$source("https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.7/beautify-html.js")
+ct$eval('global.beautify = {js_beautify:js_beautify, html_beautify:html_beautify}')
 
 ## -----------------------------------------------------------------------------
 ct$get(JS('Object.keys(global)'))

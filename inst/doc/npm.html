@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2022-11-03" />
+<meta name="date" content="2023-04-08" />
 
 <title>Using NPM packages in V8</title>
 
@@ -1491,7 +1491,7 @@ font-size: 0.95em;
 
 
 <h1 class="title toc-ignore">Using NPM packages in V8</h1>
-<h4 class="date">2022-11-03</h4>
+<h4 class="date">2023-04-08</h4>
 
 </div>
 
@@ -1539,28 +1539,16 @@ ES6) and WASM support.</p>
 <td>✔</td>
 </tr>
 <tr class="odd">
-<td>V8 (6+)</td>
+<td>V8</td>
 <td>✔</td>
 <td>✔</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>✔</td>
-</tr>
-<tr class="even">
-<td>Legacy V8 (3.14)</td>
-<td>✔</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
 </tr>
 </tbody>
 </table>
-<p>As of 2019, we support modern V8 (ES6+) on all important systems. See
-the <a href="https://github.com/jeroen/V8#installation">installation
-instructions</a> for more details.</p>
 </div>
 <div id="using-javascript-libraries" class="section level2">
 <h2>Using JavaScript libraries</h2>
@@ -1570,8 +1558,9 @@ the browser. Functionality that requires internet connectivity, a
 browser window, or file access won’t work, but there is a lot of stuff
 that does work.</p>
 <pre class="r"><code>ct &lt;- v8()
-ct$source(system.file(&quot;js/underscore.js&quot;, package = &quot;V8&quot;))
-ct$call(&quot;_.filter&quot;, mtcars, JS(&quot;function(x){return x.mpg &lt; 15}&quot;))</code></pre>
+ct$source(&#39;https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js&#39;)</code></pre>
+<pre><code>[1] &quot;true&quot;</code></pre>
+<pre class="r"><code>ct$call(&quot;_.filter&quot;, mtcars, JS(&quot;function(x){return x.mpg &lt; 15}&quot;))</code></pre>
 <pre><code>                     mpg cyl disp  hp drat    wt  qsec vs am gear carb
 Duster 360          14.3   8  360 245 3.21 3.570 15.84  0  0    3    4
 Cadillac Fleetwood  10.4   8  472 205 2.93 5.250 17.98  0  0    3    4
@@ -1622,7 +1611,8 @@ commands in your Desktop directory:</p>
 ct$source(&quot;~/Desktop/bundle.js&quot;)</code></pre>
 <p>Let’s see whats in our global environment now:</p>
 <pre class="r"><code>ct$get(JS(&#39;Object.keys(global)&#39;))</code></pre>
-<pre><code>[1] &quot;print&quot;    &quot;console&quot;  &quot;global&quot;   &quot;beautify&quot;</code></pre>
+<pre><code>[1] &quot;print&quot;         &quot;console&quot;       &quot;global&quot;        &quot;js_beautify&quot;  
+[5] &quot;html_beautify&quot; &quot;beautify&quot;     </code></pre>
 <p>The <code>beautify</code> library is available now. To beautify
 JavaScript we need to use the <code>js_beautify</code> function. See the
 <a href="https://www.npmjs.com/package/js-beautify">package homepage</a>
