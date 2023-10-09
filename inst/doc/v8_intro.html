@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2023-07-18" />
+<meta name="date" content="2023-10-09" />
 
 <title>Introduction to V8 for R</title>
 
@@ -1485,7 +1485,7 @@ font-size: 0.95em;
 
 
 <h1 class="title toc-ignore">Introduction to V8 for R</h1>
-<h4 class="date">2023-07-18</h4>
+<h4 class="date">2023-10-09</h4>
 
 </div>
 
@@ -1508,7 +1508,7 @@ dependencies. The entire engine is contained within a 6MB package (2MB
 zipped) and works on all major platforms.</p>
 <pre class="r"><code># Create some JSON
 cat(ct$eval(&quot;JSON.stringify({x:Math.random()})&quot;))</code></pre>
-<pre><code>{&quot;x&quot;:0.6585081397161119}</code></pre>
+<pre><code>{&quot;x&quot;:0.8190685216547553}</code></pre>
 <pre class="r"><code># Simple closure
 ct$eval(&quot;(function(x){return x+1;})(123)&quot;)</code></pre>
 <pre><code>[1] &quot;124&quot;</code></pre>
@@ -1669,17 +1669,12 @@ ct$eval(&#39;var cf = crossfilter || console.error(&quot;failed to load crossfil
 <div id="the-global-namespace" class="section level2">
 <h2>The Global Namespace</h2>
 <p>Unlike what you might be used to from Node or your browser, the
-global namespace for a new context if very minimal. By default it
+global namespace for a new context is very minimal. By default it
 contains only a few objects: <code>global</code> (a reference to
 itself), <code>console</code> (for <code>console.log</code> and friends)
 and <code>print</code> (an alias of console.log needed by some
 JavaScript libraries)</p>
-<pre class="r"><code>ct &lt;- v8(typed_arrays = FALSE);
-ct$get(JS(&quot;Object.keys(global)&quot;))</code></pre>
-<pre><code>[1] &quot;print&quot;   &quot;console&quot; &quot;global&quot; </code></pre>
-<p>If typed arrays are enabled it contains some additional
-functions:</p>
-<pre class="r"><code>ct &lt;- v8(typed_arrays = TRUE);
+<pre class="r"><code>ct &lt;- v8();
 ct$get(JS(&quot;Object.keys(global)&quot;))</code></pre>
 <pre><code>[1] &quot;print&quot;   &quot;console&quot; &quot;global&quot; </code></pre>
 <p>A context always has a global scope, even when no name is set. When a
