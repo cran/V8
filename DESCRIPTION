@@ -1,7 +1,7 @@
 Package: V8
 Type: Package
 Title: Embedded JavaScript and WebAssembly Engine for R
-Version: 4.4.1
+Version: 4.4.2
 Authors@R: c(
     person("Jeroen", "Ooms", role = c("aut", "cre"), email = "jeroen@berkeley.edu",
       comment = c(ORCID = "0000-0002-4035-0289")),
@@ -25,9 +25,9 @@ RoxygenNote: 7.2.3
 Language: en-US
 Encoding: UTF-8
 Biarch: true
-Packaged: 2023-12-04 12:46:09 UTC; jeroen
+Packaged: 2024-02-15 11:17:46 UTC; jeroen
 Author: Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>),
   Jan Marvin Garbuszus [ctb]
 Maintainer: Jeroen Ooms <jeroen@berkeley.edu>
 Repository: CRAN
-Date/Publication: 2023-12-04 13:30:02 UTC
+Date/Publication: 2024-02-15 15:00:02 UTC
