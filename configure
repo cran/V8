@@ -1,5 +1,5 @@
 # Anticonf (tm) script by Jeroen Ooms (2021)
-# Package requires either libv8 6 and up, or legacy branch (3.14 / 3.15).
+# Package requires either at least libv8 version 6 or nodejs built as shared library
 # If your libv8 is installed in a custom location you need to set
 # INCLUDE_DIR and LIB_DIR manually via e.g:
 # R CMD INSTALL --configure-vars='INCLUDE_DIR=/.../include LIB_DIR=/.../lib'
@@ -41,13 +41,21 @@ fi
 fi
 fi
 
-# Use CXX17 when available, required as of libv8 version 10.2
+# Use CXX20 when available, required as of libv8 version 12.7
+CXX20=`${R_HOME}/bin/R CMD config CXX20` || unset CXX20
+
+# Otherwise use CXX17 when available, required as of libv8 version 10.2
 CXX17=`${R_HOME}/bin/R CMD config CXX17` || unset CXX17
 
 # Otherwise use CXX14 when available, required as of libv8 version 8.7.80
 CXX14=`${R_HOME}/bin/R CMD config CXX14` || unset CXX14
 
-if [ "$CXX17" ]; then
+if [ "$CXX20" ]; then
+echo "Found C++20 compiler: $CXX20"
+CXX_STD=CXX20
+CXX="$CXX20 `${R_HOME}/bin/R CMD config CXX20STD`"
+CXXFLAGS=`${R_HOME}/bin/R CMD config CXX20FLAGS`
+elif [ "$CXX17" ]; then
 echo "Found C++17 compiler: $CXX17"
 CXX_STD=CXX17
 CXX="$CXX17 `${R_HOME}/bin/R CMD config CXX17STD`"
@@ -58,7 +66,7 @@ CXX_STD=CXX14
 CXX="$CXX14 `${R_HOME}/bin/R CMD config CXX14STD`"
 CXXFLAGS=`${R_HOME}/bin/R CMD config CXX14FLAGS`
 else
-echo "Using default C++11 compiler: $CXX14"
+echo "Using default C++11 compiler"
 CXX_STD=CXX11
 CXX=`${R_HOME}/bin/R CMD config CXX`
 CXXFLAGS=`${R_HOME}/bin/R CMD config CXXFLAGS`
@@ -111,15 +119,6 @@ if [ $? -ne 0 ]; then
   cat configure.log
   echo "------------------------------------------------------------------------"
   exit 1
-fi
-
-# Test for legacy libv8 version
-${CXXCPP} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} src/legacy/test.cpp >/dev/null 2>&1
-if [ $? -eq 0 ]; then
-  echo "Found legacy version of libv8"
-  PKG_LIBS=`echo "$PKG_LIBS" | sed -e "s/-lv8_libplatform//"`
-  sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/legacy/Makevars.in > src/Makevars
-  exit 0
 fi
 
 # Test if we need to enable pointer compression (Usually V8 8.4 and up, except for NodeJS)

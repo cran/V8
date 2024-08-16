@@ -67,8 +67,7 @@
 #' @export v8 new_context
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose `console` API (`console.log`, `console.warn`, `console.error`).
-#' @param typed_arrays (deprecated) enable typed arrays in legacy libv8. Deprecated because
-#' typed arrays are natively supported in recent versions of libv8.
+#' @param ... ignored parameters for past/future versions.
 #' @aliases V8 v8 new_context
 #' @rdname V8
 #' @name V8
@@ -134,7 +133,7 @@
 #' # exit
 #' }
 #'
-v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
+v8 <- function(global = "global", console = TRUE, ...) {
   # Private fields
   private <- environment();
 
@@ -200,9 +199,6 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
       private$created <- Sys.time();
       if(length(global)){
         context_eval(paste("var", global, "= this;", collapse = "\n"), private$context)
-      }
-      if(isTRUE(typed_arrays)){
-        context_enable_typed_arrays(private$context)
       }
       invisible()
     }
@@ -322,6 +318,18 @@ print.V8 <- function(x, ...){
     })
     invisible()
   }
+}
+
+#' @export
+#' @rawNamespace if (getRversion() >= "4.3.0") S3method(base::`@`, V8)
+`@.V8` <- function(object, name, ...){
+  object[[name]]
+}
+
+### enable tab completion
+#' @rawNamespace if (getRversion() >= "4.3.0" && !is.null(asNamespace("utils")$.AtNames)) S3method(utils::.AtNames,V8)
+.AtNames.V8 <- function(x, pattern) {
+  asNamespace("utils")$findMatches(pattern, ls(x))
 }
 
 # Pretty format function headers

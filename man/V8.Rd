@@ -7,7 +7,7 @@
 \alias{engine_info}
 \title{Run JavaScript in a V8 context}
 \usage{
-v8(global = "global", console = TRUE, typed_arrays = TRUE)
+v8(global = "global", console = TRUE, ...)
 
 engine_info()
 }
@@ -16,8 +16,7 @@ engine_info()
 
 \item{console}{expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).}
 
-\item{typed_arrays}{(deprecated) enable typed arrays in legacy libv8. Deprecated because
-typed arrays are natively supported in recent versions of libv8.}
+\item{...}{ignored parameters for past/future versions.}
 }
 \description{
 The \code{\link[=v8]{v8()}} function (formerly called \code{new_context}) creates a
@@ -71,7 +70,7 @@ JSON is used for data interchange between R and JavaScript. Therefore you can
 One exception is raw vectors which are converted to/from Uint8Array buffers, see
 below. All other arguments and objects are automatically converted according to the mapping
 described in \href{https://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
-by the jsonlite package in \code{\link[=fromJSON]{fromJSON()}} and \code{\link[=toJSON]{toJSON()}}.
+by the jsonlite package in \code{\link[jsonlite:fromJSON]{jsonlite::fromJSON()}} and \code{\link[jsonlite:fromJSON]{jsonlite::toJSON()}}.
 
 As for version 3.0 of this R package, Raw vectors are converted to \code{Uint8Array}
 typed arrays, and vice versa. This makes it possible to efficiently copy large chunks
