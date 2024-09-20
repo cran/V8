@@ -1,9 +1,9 @@
 Package: V8
 Type: Package
 Title: Embedded JavaScript and WebAssembly Engine for R
-Version: 5.0.0
+Version: 5.0.1
 Authors@R: c(
-    person("Jeroen", "Ooms", role = c("aut", "cre"), email = "jeroen@berkeley.edu",
+    person("Jeroen", "Ooms", role = c("aut", "cre"), email = "jeroenooms@gmail.com",
       comment = c(ORCID = "0000-0002-4035-0289")),
     person("Jan Marvin", "Garbuszus", role = "ctb"))
 Description: An R interface to V8 <https://v8.dev>: Google's open source JavaScript
@@ -25,9 +25,9 @@ RoxygenNote: 7.3.1
 Language: en-US
 Encoding: UTF-8
 Biarch: true
-Packaged: 2024-08-16 10:00:57 UTC; jeroen
+Packaged: 2024-09-19 15:49:08 UTC; jeroen
 Author: Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>),
   Jan Marvin Garbuszus [ctb]
-Maintainer: Jeroen Ooms <jeroen@berkeley.edu>
+Maintainer: Jeroen Ooms <jeroenooms@gmail.com>
 Repository: CRAN
-Date/Publication: 2024-08-16 11:40:02 UTC
+Date/Publication: 2024-09-20 08:40:18 UTC
