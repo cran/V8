@@ -1,3 +1,7 @@
+6.0.0
+  - Experimental support for dynamic ES modules
+  - Linux: update static libv8 to version 11.9
+
 5.0.1
   - Remove some test verbosity per CRAN request
   - Update maintainer email address
