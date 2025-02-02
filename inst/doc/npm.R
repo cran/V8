@@ -8,8 +8,8 @@ ct$source('https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscor
 ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  ct <- v8()
-#  ct$source("~/Desktop/bundle.js")
+# ct <- v8()
+# ct$source("~/Desktop/bundle.js")
 
 ## ----echo=FALSE, results='hide'-----------------------------------------------
 # Hack because we unbundled this library

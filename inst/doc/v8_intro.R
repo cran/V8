@@ -35,6 +35,7 @@ ct$get("bar")
 ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 
 ## ----error=TRUE---------------------------------------------------------------
+try({
 js = 'function test_number(x){
   var promise = new Promise(function(resolve, reject) {
     if(x == 42)
@@ -57,21 +58,22 @@ ctx$call("test_number", 42, await = TRUE)
 
 # A rejected promise will throw an error
 ctx$call("test_number", 41, await = TRUE)
+})
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  # Load some data
-#  data(diamonds, package = "ggplot2")
-#  ct$assign("diamonds", diamonds)
-#  ct$console()
+# # Load some data
+# data(diamonds, package = "ggplot2")
+# ct$assign("diamonds", diamonds)
+# ct$console()
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  output <- ct$get("output")
-#  print(output)
+# output <- ct$get("output")
+# print(output)
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  ct <- v8()
-#  ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js")
-#  ct$eval('var cf = crossfilter || console.error("failed to load crossfilter!")')
+# ct <- v8()
+# ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js")
+# ct$eval('var cf = crossfilter || console.error("failed to load crossfilter!")')
 
 ## -----------------------------------------------------------------------------
 ct <- v8();
@@ -103,6 +105,6 @@ ct$validate("(function(x){2*x})")
 ct$validate("!function(x){2*x}")
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  ctx <- v8()
-#  ctx$console()
+# ctx <- v8()
+# ctx$console()
 
