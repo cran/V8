@@ -1,7 +1,7 @@
 Package: V8
 Type: Package
 Title: Embedded JavaScript and WebAssembly Engine for R
-Version: 6.0.5
+Version: 6.0.6
 Authors@R: c(
     person("Jeroen", "Ooms", role = c("aut", "cre"), email = "jeroenooms@gmail.com",
       comment = c(ORCID = "0000-0002-4035-0289")),
@@ -12,9 +12,8 @@ Description: An R interface to V8 <https://v8.dev>: Google's open source JavaScr
 License: MIT + file LICENSE
 URL: https://jeroen.r-universe.dev/V8
 BugReports: https://github.com/jeroen/v8/issues
-SystemRequirements: V8 engine version 6+ is needed for ES6 and WASM
-        support. On Linux you can build against libv8-dev (Debian) or
-        v8-devel (Fedora). We also provide static libv8 binaries for
+SystemRequirements: On Linux you can build against libv8-dev (Debian)
+        or v8-devel (Fedora). We also provide static libv8 binaries for
         most platforms, see the README for details.
 NeedsCompilation: yes
 VignetteBuilder: knitr
@@ -25,9 +24,9 @@ RoxygenNote: 7.3.1
 Language: en-US
 Encoding: UTF-8
 Biarch: true
-Packaged: 2025-07-31 11:29:10 UTC; jeroen
+Packaged: 2025-08-18 08:59:45 UTC; jeroen
 Author: Jeroen Ooms [aut, cre] (ORCID: <https://orcid.org/0000-0002-4035-0289>),
   Jan Marvin Garbuszus [ctb]
 Maintainer: Jeroen Ooms <jeroenooms@gmail.com>
 Repository: CRAN
-Date/Publication: 2025-07-31 12:20:02 UTC
+Date/Publication: 2025-08-18 10:20:20 UTC
