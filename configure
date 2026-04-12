@@ -1,4 +1,4 @@
-# Anticonf (tm) script by Jeroen Ooms (2025)
+# Anticonf (tm) script by Jeroen Ooms (2026)
 # Package requires either at least libv8 version 6 or nodejs built as shared library
 # To use a local custom libv8 set V8_PKG_CFLAGS and V8_PKG_LIBS (see below)
 PKG_DEB_NAME="libv8-dev or libnode-dev"
@@ -36,6 +36,8 @@ elif test -f "/etc/os-release" && grep -Fq suse "/etc/os-release"; then
 HAVE_STATIC=1
 elif test -f "/etc/os-release" && grep -Fq alpine "/etc/os-release"; then
 HAVE_STATIC=1
+elif test -f "/etc/os-release" && grep -Fq amzn "/etc/os-release"; then
+HAVE_STATIC=1
 fi
 
 # Default to static V8 on supported production platforms
@@ -53,9 +55,6 @@ CXX20=`${R_HOME}/bin/R CMD config CXX20` || unset CXX20
 # Otherwise use CXX17 when available, required as of libv8 version 10.2
 CXX17=`${R_HOME}/bin/R CMD config CXX17` || unset CXX17
 
-# Otherwise use CXX14 when available, required as of libv8 version 8.7.80
-CXX14=`${R_HOME}/bin/R CMD config CXX14` || unset CXX14
-
 if [ "$CXX20" ]; then
 echo "Found C++20 compiler: $CXX20"
 CXX_STD=CXX20
@@ -66,14 +65,8 @@ echo "Found C++17 compiler: $CXX17"
 CXX_STD=CXX17
 CXX="$CXX17 `${R_HOME}/bin/R CMD config CXX17STD`"
 CXXFLAGS=`${R_HOME}/bin/R CMD config CXX17FLAGS`
-elif [ "$CXX14" ]; then
-echo "Found C++14 compiler: $CXX14"
-CXX_STD=CXX14
-CXX="$CXX14 `${R_HOME}/bin/R CMD config CXX14STD`"
-CXXFLAGS=`${R_HOME}/bin/R CMD config CXX14FLAGS`
 else
-echo "Using default C++11 compiler"
-CXX_STD=CXX11
+CXX_STD=CXX17
 CXX=`${R_HOME}/bin/R CMD config CXX`
 CXXFLAGS=`${R_HOME}/bin/R CMD config CXXFLAGS`
 fi
@@ -163,5 +156,5 @@ esac
 rm -Rf v8version*
 
 # Assume a modern V8 API
-sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|${CXX_STD}|" src/Makevars.in > src/Makevars
+sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX20|${CXX_STD}|" src/Makevars.in > src/Makevars
 exit 0
